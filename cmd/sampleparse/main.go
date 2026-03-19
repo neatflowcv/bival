@@ -14,6 +14,8 @@ func main() {
 		path = os.Args[1]
 	}
 
+	registry := domain.NewEntryRegistry()
+
 	err := bival.ParseFile(path, func(record *bival.Record) error {
 		name := record.Entry.Name
 
@@ -35,14 +37,22 @@ func main() {
 			return nil
 		}
 
-		if hasInvalidDomainEntry(record, name, instance) {
+		entry := newDomainEntry(record, name, instance)
+		if entry == nil {
 			describeRecord(record)
 
 			return nil
 		}
 
+		registry.Add(entry)
+
 		return nil
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = registry.Validate()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,8 +70,11 @@ func describeRecord(record *bival.Record) {
 	log.Printf("name=%q type=%s instance=%q", name, record.Type, instance)
 }
 
-func hasInvalidDomainEntry(record *bival.Record, name string, instance string) bool {
-	_, validationErr := domain.NewEntry(domain.Kind(record.Type), name, instance)
+func newDomainEntry(record *bival.Record, name string, instance string) *domain.Entry {
+	entry, validationErr := domain.NewEntry(domain.Kind(record.Type), name, instance)
+	if validationErr != nil {
+		return nil
+	}
 
-	return validationErr != nil
+	return entry
 }
