@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/neatflowcv/bival"
 )
@@ -19,22 +18,11 @@ func main() {
 		totalSize int64
 	)
 
-	const previewLimit = 3
-
 	err := bival.ParseFile(path, func(record bival.Record) error {
 		count++
 		totalSize += record.Entry.Meta.Size
 
-		if count <= previewLimit {
-			log.Printf(
-				"%s: type=%s idx=%q size=%d exists=%t",
-				strconv.Itoa(count),
-				record.Type,
-				record.Idx,
-				record.Entry.Meta.Size,
-				record.Entry.Exists,
-			)
-		}
+		describeRecord(record)
 
 		return nil
 	})
@@ -43,4 +31,16 @@ func main() {
 	}
 
 	log.Printf("records=%d total_size=%d", count, totalSize)
+}
+
+func describeRecord(record bival.Record) {
+	name := record.Entry.Name
+	instance := record.Entry.Instance
+
+	if record.Type == "olh" {
+		name = record.Entry.Key.Name
+		instance = record.Entry.Key.Instance
+	}
+
+	log.Printf("name=%q type=%s instance=%q", name, record.Type, instance)
 }
