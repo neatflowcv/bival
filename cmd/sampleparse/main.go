@@ -24,7 +24,14 @@ func main() {
 		count++
 		totalSize += record.Entry.Meta.Size
 
-		_, err := domain.NewEntry(domain.Kind(record.Type))
+		name := record.Entry.Name
+		instance := record.Entry.Instance
+		if record.Type == "olh" {
+			name = record.Entry.Key.Name
+			instance = record.Entry.Key.Instance
+		}
+
+		_, err := domain.NewEntry(domain.Kind(record.Type), name, instance)
 		if err != nil {
 			return fmt.Errorf("new entry for type %q: %w", record.Type, err)
 		}
