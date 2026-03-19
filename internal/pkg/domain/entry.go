@@ -9,9 +9,9 @@ var errInvalidKind = errors.New("invalid entry kind")
 var errEmptyName = errors.New("entry name is required")
 
 type Entry struct {
-	Kind     Kind
-	Name     string
-	Instance string
+	kind     Kind
+	name     string
+	instance string
 }
 
 func NewEntry(kind Kind, name string, instance string) (*Entry, error) {
@@ -24,8 +24,20 @@ func NewEntry(kind Kind, name string, instance string) (*Entry, error) {
 	}
 
 	return &Entry{
-		Kind:     kind,
-		Name:     name,
-		Instance: instance,
+		kind:     kind,
+		name:     name,
+		instance: instance,
 	}, nil
+}
+
+func (e *Entry) Kind() Kind {
+	return e.kind
+}
+
+func (e *Entry) Name() string {
+	return e.name
+}
+
+func (e *Entry) Instance() string {
+	return e.instance
 }
