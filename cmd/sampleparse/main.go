@@ -18,7 +18,7 @@ func main() {
 		totalSize int64
 	)
 
-	err := bival.ParseFile(path, func(record bival.Record) error {
+	err := bival.ParseFile(path, func(record *bival.Record) error {
 		count++
 		totalSize += record.Entry.Meta.Size
 
@@ -33,7 +33,7 @@ func main() {
 	log.Printf("records=%d total_size=%d", count, totalSize)
 }
 
-func describeRecord(record bival.Record) {
+func describeRecord(record *bival.Record) {
 	name := record.Entry.Name
 	instance := record.Entry.Instance
 

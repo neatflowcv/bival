@@ -19,15 +19,15 @@ func TestParseFileSample(t *testing.T) {
 	)
 
 	// Act
-	err := bival.ParseFile("sample.json", func(record bival.Record) error {
+	err := bival.ParseFile("sample.json", func(record *bival.Record) error {
 		count++
 		totalSize += record.Entry.Meta.Size
 
 		if count == 1 {
-			first = record
+			first = *record
 		}
 
-		last = record
+		last = *record
 
 		return nil
 	})

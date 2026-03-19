@@ -69,7 +69,7 @@ type Key struct {
 // ParseFile opens a JSON file whose top-level value is an array and decodes
 // each element one at a time. It keeps memory usage bounded because it never
 // builds the full slice in memory.
-func ParseFile(path string, visit func(Record) error) error {
+func ParseFile(path string, visit func(*Record) error) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("open %s: %w", path, err)
@@ -83,7 +83,7 @@ func ParseFile(path string, visit func(Record) error) error {
 }
 
 // Parse streams records from r and calls visit for each decoded item.
-func Parse(r io.Reader, visit func(Record) error) error {
+func Parse(r io.Reader, visit func(*Record) error) error {
 	dec := json.NewDecoder(r)
 
 	tok, err := dec.Token()
@@ -104,7 +104,7 @@ func Parse(r io.Reader, visit func(Record) error) error {
 			return fmt.Errorf("decode record: %w", err)
 		}
 
-		err = visit(record)
+		err = visit(&record)
 		if err != nil {
 			return err
 		}
