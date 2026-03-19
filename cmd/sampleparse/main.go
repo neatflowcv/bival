@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/neatflowcv/bival"
+	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
 func main() {
@@ -21,6 +23,11 @@ func main() {
 	err := bival.ParseFile(path, func(record *bival.Record) error {
 		count++
 		totalSize += record.Entry.Meta.Size
+
+		_, err := domain.NewEntry(domain.Kind(record.Type))
+		if err != nil {
+			return fmt.Errorf("new entry for type %q: %w", record.Type, err)
+		}
 
 		describeRecord(record)
 
