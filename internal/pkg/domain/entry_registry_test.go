@@ -2,6 +2,7 @@ package domain_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 	"github.com/stretchr/testify/require"
@@ -13,22 +14,22 @@ func TestEntryRegistryAddGroupsByName(t *testing.T) {
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
+	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
 	require.NoError(t, err)
 
-	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1")
+	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-2", time.Time{})
 	require.NoError(t, err)
 
-	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2")
+	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2", time.Date(2026, 3, 19, 6, 28, 46, 0, time.UTC))
 	require.NoError(t, err)
 
 	// Act
@@ -51,7 +52,7 @@ func TestEntryRegistryValidateAllowsSinglePlainEntry(t *testing.T) {
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	entry, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	entry, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 	registry.Add(entry)
 
@@ -68,10 +69,10 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutOLH(t *testing.T) {
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	entry, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
+	entry, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
 	require.NoError(t, err)
 	registry.Add(plain)
 	registry.Add(entry)
@@ -89,10 +90,10 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutHeadPlain(t *testing.T) 
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
+	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
 	require.NoError(t, err)
 
-	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1")
+	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})
 	require.NoError(t, err)
 
 	registry.Add(instance)
@@ -111,13 +112,13 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutVersionPlain(t *testing.
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
+	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
 	require.NoError(t, err)
 
-	entry, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1")
+	entry, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})
 	require.NoError(t, err)
 	registry.Add(plain)
 	registry.Add(instance)
@@ -136,25 +137,25 @@ func TestEntryRegistryValidateRejectsMoreThanOneOLH(t *testing.T) {
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance1, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
+	instance1, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
 	require.NoError(t, err)
 
-	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2")
+	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2", time.Date(2026, 3, 19, 6, 28, 46, 0, time.UTC))
 	require.NoError(t, err)
 
-	olh1, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1")
+	olh1, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})
 	require.NoError(t, err)
 
-	olh2, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-2")
+	olh2, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-2", time.Time{})
 	require.NoError(t, err)
 
 	registry.Add(plain)
@@ -178,10 +179,10 @@ func TestEntryRegistryValidateRejectsNonVersionedSetWithMultiplePlainEntries(t *
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	anotherPlain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	anotherPlain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
 	registry.Add(plain)
@@ -200,16 +201,16 @@ func TestEntryRegistryValidateCollectsAllSetErrors(t *testing.T) {
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	group1Plain, err := domain.NewEntry(domain.KindPlain, "group1.txt", "")
+	group1Plain, err := domain.NewEntry(domain.KindPlain, "group1.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	group1Instance, err := domain.NewEntry(domain.KindInstance, "group1.txt", "instance-1")
+	group1Instance, err := domain.NewEntry(domain.KindInstance, "group1.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
 	require.NoError(t, err)
 
-	group2Instance, err := domain.NewEntry(domain.KindInstance, "group2.txt", "instance-1")
+	group2Instance, err := domain.NewEntry(domain.KindInstance, "group2.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
 	require.NoError(t, err)
 
-	group2OLH, err := domain.NewEntry(domain.KindOLH, "group2.txt", "instance-1")
+	group2OLH, err := domain.NewEntry(domain.KindOLH, "group2.txt", "instance-1", time.Time{})
 	require.NoError(t, err)
 
 	registry.Add(group1Plain)
@@ -223,6 +224,68 @@ func TestEntryRegistryValidateCollectsAllSetErrors(t *testing.T) {
 	// Assert
 	require.ErrorContains(t, err, "versioned set must contain exactly 1 olh entry")
 	require.ErrorContains(t, err, "versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
+}
+
+func TestEntryRegistryValidateRejectsOLHWithoutMatchingInstance(t *testing.T) {
+	t.Parallel()
+
+	registry := domain.NewEntryRegistry()
+
+	headPlain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
+	require.NoError(t, err)
+
+	versionPlain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
+	require.NoError(t, err)
+
+	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	require.NoError(t, err)
+
+	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-2", time.Time{})
+	require.NoError(t, err)
+
+	registry.Add(headPlain)
+	registry.Add(versionPlain)
+	registry.Add(instance)
+	registry.Add(olh)
+
+	err = registry.Validate()
+
+	require.ErrorContains(t, err, "versioned set olh must reference an existing instance entry")
+}
+
+func TestEntryRegistryValidateRejectsOLHThatDoesNotReferenceLatestInstance(t *testing.T) {
+	t.Parallel()
+
+	registry := domain.NewEntryRegistry()
+
+	headPlain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
+	require.NoError(t, err)
+
+	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
+	require.NoError(t, err)
+
+	instance1, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	require.NoError(t, err)
+
+	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
+	require.NoError(t, err)
+
+	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2", time.Date(2026, 3, 19, 6, 28, 46, 0, time.UTC))
+	require.NoError(t, err)
+
+	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})
+	require.NoError(t, err)
+
+	registry.Add(headPlain)
+	registry.Add(version1Plain)
+	registry.Add(instance1)
+	registry.Add(version2Plain)
+	registry.Add(instance2)
+	registry.Add(olh)
+
+	err = registry.Validate()
+
+	require.ErrorContains(t, err, "versioned set olh must reference the latest instance entry")
 }
 
 func TestEntryRegistryAddIgnoresNilEntry(t *testing.T) {

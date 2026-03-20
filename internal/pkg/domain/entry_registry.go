@@ -3,12 +3,15 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 var (
 	errEntrySetNonVersionedPlain = errors.New("non-versioned set must contain exactly 1 plain entry")
 	errEntrySetVersionedOLH      = errors.New("versioned set must contain exactly 1 olh entry")
 	errEntrySetVersionedPlain    = errors.New("versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
+	errEntrySetOLHInstance       = errors.New("versioned set olh must reference an existing instance entry")
+	errEntrySetOLHLatest         = errors.New("versioned set olh must reference the latest instance entry")
 )
 
 type EntryRegistry struct {
@@ -21,6 +24,8 @@ type entrySet struct {
 	plainCount    int
 	instanceCount int
 	olhCount      int
+	olhInstance   string
+	instanceMTime map[string]time.Time
 }
 
 func NewEntryRegistry() *EntryRegistry {
@@ -62,6 +67,8 @@ func (r *EntryRegistry) getOrCreateSet(name string) *entrySet {
 		plainCount:    0,
 		instanceCount: 0,
 		olhCount:      0,
+		olhInstance:   "",
+		instanceMTime: make(map[string]time.Time),
 	}
 	r.sets[name] = set
 
@@ -78,8 +85,10 @@ func (s *entrySet) add(entry *Entry) {
 		s.plainCount++
 	case KindInstance:
 		s.instanceCount++
+		s.instanceMTime[entry.Instance()] = entry.MTime()
 	case KindOLH:
 		s.olhCount++
+		s.olhInstance = entry.Instance()
 	}
 }
 
@@ -121,6 +130,25 @@ func (s *entrySet) validate() error {
 		)
 	}
 
+	if !s.hasValidOLHInstance() {
+		return fmt.Errorf(
+			"%w: %q olh_instance=%q",
+			errEntrySetOLHInstance,
+			s.name,
+			s.olhInstance,
+		)
+	}
+
+	if !s.isLatestOLHInstance() {
+		return fmt.Errorf(
+			"%w: %q olh_instance=%q latest_instance=%q",
+			errEntrySetOLHLatest,
+			s.name,
+			s.olhInstance,
+			s.latestInstance(),
+		)
+	}
+
 	return nil
 }
 
@@ -135,4 +163,41 @@ func (s *entrySet) isValidNonVersionedObject() bool {
 func (s *entrySet) isValidVersionedObject() bool {
 	// Versioned objects keep one extra plain entry for the head object.
 	return s.olhCount == 1 && s.plainCount == s.instanceCount+1
+}
+
+func (s *entrySet) hasValidOLHInstance() bool {
+	_, ok := s.instanceMTime[s.olhInstance]
+
+	return ok
+}
+
+func (s *entrySet) isLatestOLHInstance() bool {
+	olhMTime, ok := s.instanceMTime[s.olhInstance]
+	if !ok {
+		return false
+	}
+
+	for _, instanceMTime := range s.instanceMTime {
+		if instanceMTime.After(olhMTime) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s *entrySet) latestInstance() string {
+	var (
+		latestInstance string
+		latestMTime    time.Time
+	)
+
+	for instance, instanceMTime := range s.instanceMTime {
+		if latestInstance == "" || instanceMTime.After(latestMTime) {
+			latestInstance = instance
+			latestMTime = instanceMTime
+		}
+	}
+
+	return latestInstance
 }

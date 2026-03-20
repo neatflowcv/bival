@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/neatflowcv/bival"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
@@ -71,10 +72,23 @@ func describeRecord(record *bival.Record) {
 }
 
 func newDomainEntry(record *bival.Record, name string, instance string) *domain.Entry {
-	entry, validationErr := domain.NewEntry(domain.Kind(record.Type), name, instance)
+	mtime, err := parseMTime(record.Entry.Meta.MTime)
+	if err != nil {
+		return nil
+	}
+
+	entry, validationErr := domain.NewEntry(domain.Kind(record.Type), name, instance, mtime)
 	if validationErr != nil {
 		return nil
 	}
 
 	return entry
+}
+
+func parseMTime(value string) (time.Time, error) {
+	if value == "" || value == "0.000000" {
+		return time.Time{}, nil
+	}
+
+	return time.Parse(time.RFC3339Nano, value)
 }
