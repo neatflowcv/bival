@@ -6,11 +6,9 @@ import (
 )
 
 var (
-	errEntrySetMissingPlain = errors.New("plain entries require at least one plain entry")
-	errEntrySetInstanceOnly = errors.New("instance entries require an olh entry")
-	errEntrySetOLHOnly      = errors.New("olh entries require an instance entry")
-	errEntrySetTooManyOLH   = errors.New("olh entries must be 0 or 1")
-	errEntrySetInvalidTotal = errors.New("total entries must be 1 or 4 plus an even offset")
+	errEntrySetNonVersionedPlain = errors.New("non-versioned set must contain exactly 1 plain entry")
+	errEntrySetVersionedOLH      = errors.New("versioned set must contain exactly 1 olh entry")
+	errEntrySetVersionedPlain    = errors.New("versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
 )
 
 type EntryRegistry struct {
@@ -86,26 +84,55 @@ func (s *entrySet) add(entry *Entry) {
 }
 
 func (s *entrySet) validate() error {
-	if s.plainCount == 0 {
-		return fmt.Errorf("%w: %q", errEntrySetMissingPlain, s.name)
+	if !s.isVersioningObject() {
+		if !s.isValidNonVersionedObject() {
+			return fmt.Errorf(
+				"%w: %q plain=%d instance=%d olh=%d",
+				errEntrySetNonVersionedPlain,
+				s.name,
+				s.plainCount,
+				s.instanceCount,
+				s.olhCount,
+			)
+		}
+
+		return nil
 	}
 
-	if s.instanceCount > 0 && s.olhCount == 0 {
-		return fmt.Errorf("%w: %q", errEntrySetInstanceOnly, s.name)
-	}
+	if !s.isValidVersionedObject() {
+		if s.olhCount != 1 {
+			return fmt.Errorf(
+				"%w: %q plain=%d instance=%d olh=%d",
+				errEntrySetVersionedOLH,
+				s.name,
+				s.plainCount,
+				s.instanceCount,
+				s.olhCount,
+			)
+		}
 
-	if s.olhCount > 0 && s.instanceCount == 0 {
-		return fmt.Errorf("%w: %q", errEntrySetOLHOnly, s.name)
-	}
-
-	if s.olhCount > 1 {
-		return fmt.Errorf("%w: %q", errEntrySetTooManyOLH, s.name)
-	}
-
-	totalCount := s.plainCount + s.instanceCount + s.olhCount
-	if totalCount != 1 && (totalCount < 4 || totalCount%2 != 0) {
-		return fmt.Errorf("%w: %q total=%d", errEntrySetInvalidTotal, s.name, totalCount)
+		return fmt.Errorf(
+			"%w: %q plain=%d instance=%d olh=%d",
+			errEntrySetVersionedPlain,
+			s.name,
+			s.plainCount,
+			s.instanceCount,
+			s.olhCount,
+		)
 	}
 
 	return nil
+}
+
+func (s *entrySet) isVersioningObject() bool {
+	return s.instanceCount > 0 || s.olhCount > 0
+}
+
+func (s *entrySet) isValidNonVersionedObject() bool {
+	return s.plainCount == 1 && s.instanceCount == 0 && s.olhCount == 0
+}
+
+func (s *entrySet) isValidVersionedObject() bool {
+	// Versioned objects keep one extra plain entry for the head object.
+	return s.olhCount == 1 && s.plainCount == s.instanceCount+1
 }

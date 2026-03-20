@@ -16,10 +16,16 @@ func TestEntryRegistryAddGroupsByName(t *testing.T) {
 	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
 	require.NoError(t, err)
 
+	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	require.NoError(t, err)
+
 	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
 	require.NoError(t, err)
 
 	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1")
+	require.NoError(t, err)
+
+	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
 	require.NoError(t, err)
 
 	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2")
@@ -27,7 +33,9 @@ func TestEntryRegistryAddGroupsByName(t *testing.T) {
 
 	// Act
 	registry.Add(plain)
+	registry.Add(version1Plain)
 	registry.Add(instance)
+	registry.Add(version2Plain)
 	registry.Add(instance2)
 	registry.Add(olh)
 
@@ -54,7 +62,7 @@ func TestEntryRegistryValidateAllowsSinglePlainEntry(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestEntryRegistryValidateRejectsInstanceOnly(t *testing.T) {
+func TestEntryRegistryValidateRejectsVersionedSetWithoutOLH(t *testing.T) {
 	t.Parallel()
 
 	// Arrange
@@ -72,10 +80,10 @@ func TestEntryRegistryValidateRejectsInstanceOnly(t *testing.T) {
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "instance entries require an olh entry")
+	require.ErrorContains(t, err, "versioned set must contain exactly 1 olh entry")
 }
 
-func TestEntryRegistryValidateRejectsMissingPlain(t *testing.T) {
+func TestEntryRegistryValidateRejectsVersionedSetWithoutHeadPlain(t *testing.T) {
 	t.Parallel()
 
 	// Arrange
@@ -94,10 +102,10 @@ func TestEntryRegistryValidateRejectsMissingPlain(t *testing.T) {
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "plain entries require at least one plain entry")
+	require.ErrorContains(t, err, "versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
 }
 
-func TestEntryRegistryValidateRejectsOLHOnly(t *testing.T) {
+func TestEntryRegistryValidateRejectsVersionedSetWithoutVersionPlain(t *testing.T) {
 	t.Parallel()
 
 	// Arrange
@@ -106,16 +114,20 @@ func TestEntryRegistryValidateRejectsOLHOnly(t *testing.T) {
 	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
 	require.NoError(t, err)
 
+	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
+	require.NoError(t, err)
+
 	entry, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1")
 	require.NoError(t, err)
 	registry.Add(plain)
+	registry.Add(instance)
 	registry.Add(entry)
 
 	// Act
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "olh entries require an instance entry")
+	require.ErrorContains(t, err, "versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
 }
 
 func TestEntryRegistryValidateRejectsMoreThanOneOLH(t *testing.T) {
@@ -127,7 +139,13 @@ func TestEntryRegistryValidateRejectsMoreThanOneOLH(t *testing.T) {
 	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
 	require.NoError(t, err)
 
+	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
+	require.NoError(t, err)
+
 	instance1, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
+	require.NoError(t, err)
+
+	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
 	require.NoError(t, err)
 
 	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2")
@@ -140,7 +158,9 @@ func TestEntryRegistryValidateRejectsMoreThanOneOLH(t *testing.T) {
 	require.NoError(t, err)
 
 	registry.Add(plain)
+	registry.Add(version1Plain)
 	registry.Add(instance1)
+	registry.Add(version2Plain)
 	registry.Add(instance2)
 	registry.Add(olh1)
 	registry.Add(olh2)
@@ -149,10 +169,10 @@ func TestEntryRegistryValidateRejectsMoreThanOneOLH(t *testing.T) {
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "olh entries must be 0 or 1")
+	require.ErrorContains(t, err, "versioned set must contain exactly 1 olh entry")
 }
 
-func TestEntryRegistryValidateRejectsInvalidTotalCount(t *testing.T) {
+func TestEntryRegistryValidateRejectsNonVersionedSetWithMultiplePlainEntries(t *testing.T) {
 	t.Parallel()
 
 	// Arrange
@@ -161,21 +181,17 @@ func TestEntryRegistryValidateRejectsInvalidTotalCount(t *testing.T) {
 	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
 	require.NoError(t, err)
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1")
-	require.NoError(t, err)
-
-	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1")
+	anotherPlain, err := domain.NewEntry(domain.KindPlain, "test.txt", "")
 	require.NoError(t, err)
 
 	registry.Add(plain)
-	registry.Add(instance)
-	registry.Add(olh)
+	registry.Add(anotherPlain)
 
 	// Act
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "total entries must be 1 or 4 plus an even offset")
+	require.ErrorContains(t, err, "non-versioned set must contain exactly 1 plain entry")
 }
 
 func TestEntryRegistryValidateCollectsAllSetErrors(t *testing.T) {
@@ -205,8 +221,8 @@ func TestEntryRegistryValidateCollectsAllSetErrors(t *testing.T) {
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "instance entries require an olh entry")
-	require.ErrorContains(t, err, "plain entries require at least one plain entry")
+	require.ErrorContains(t, err, "versioned set must contain exactly 1 olh entry")
+	require.ErrorContains(t, err, "versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
 }
 
 func TestEntryRegistryAddIgnoresNilEntry(t *testing.T) {
