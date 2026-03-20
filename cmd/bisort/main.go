@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"container/heap"
 	"encoding/json"
 	"errors"
@@ -11,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/neatflowcv/bival"
 )
@@ -324,10 +327,10 @@ func (h *mergeHeap) Pop() any {
 }
 
 func mergeChunks(w io.Writer, chunkPaths []string) error {
-	_, err := io.WriteString(w, "[")
-	if err != nil {
-		return fmt.Errorf("write opening array: %w", err)
-	}
+	bw := bufio.NewWriter(w)
+	defer func() {
+		_ = bw.Flush()
+	}()
 
 	readers := make([]*chunkReader, 0, len(chunkPaths))
 	defer func() {
@@ -358,18 +361,40 @@ func mergeChunks(w io.Writer, chunkPaths []string) error {
 		})
 	}
 
+	if h.Len() == 0 {
+		if _, err := io.WriteString(bw, "[]\n"); err != nil {
+			return fmt.Errorf("write empty array: %w", err)
+		}
+
+		if err := bw.Flush(); err != nil {
+			return fmt.Errorf("flush output: %w", err)
+		}
+
+		return nil
+	}
+
+	_, err := io.WriteString(bw, "[\n")
+	if err != nil {
+		return fmt.Errorf("write opening array: %w", err)
+	}
+
 	first := true
 	for h.Len() > 0 {
 		item := heap.Pop(&h).(*heapItem)
 
 		if !first {
-			if _, err := io.WriteString(w, ","); err != nil {
+			if _, err := io.WriteString(bw, ",\n"); err != nil {
 				return fmt.Errorf("write separator: %w", err)
 			}
 		}
 		first = false
 
-		if _, err := w.Write(item.record.Raw); err != nil {
+		formatted, err := formatRecord(item.record.Raw)
+		if err != nil {
+			return fmt.Errorf("format record: %w", err)
+		}
+
+		if _, err := bw.Write(formatted); err != nil {
 			return fmt.Errorf("write record: %w", err)
 		}
 
@@ -385,9 +410,36 @@ func mergeChunks(w io.Writer, chunkPaths []string) error {
 		heap.Push(&h, item)
 	}
 
-	if _, err := io.WriteString(w, "]"); err != nil {
+	if !first {
+		if _, err := io.WriteString(bw, "\n"); err != nil {
+			return fmt.Errorf("write trailing newline: %w", err)
+		}
+	}
+
+	if _, err := io.WriteString(bw, "]\n"); err != nil {
 		return fmt.Errorf("write closing array: %w", err)
 	}
 
+	if err := bw.Flush(); err != nil {
+		return fmt.Errorf("flush output: %w", err)
+	}
+
 	return nil
+}
+
+func formatRecord(raw json.RawMessage) ([]byte, error) {
+	var formatted bytes.Buffer
+	if err := json.Indent(&formatted, raw, "    ", "    "); err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(formatted.String(), "\n")
+	for i, line := range lines {
+		if line == "" {
+			continue
+		}
+		lines[i] = "    " + line
+	}
+
+	return []byte(strings.Join(lines, "\n")), nil
 }
