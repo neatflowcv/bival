@@ -429,7 +429,7 @@ func mergeChunks(w io.Writer, chunkPaths []string) error {
 
 func formatRecord(raw json.RawMessage) ([]byte, error) {
 	var formatted bytes.Buffer
-	if err := json.Indent(&formatted, raw, "    ", "    "); err != nil {
+	if err := json.Indent(&formatted, raw, "", "    "); err != nil {
 		return nil, err
 	}
 
