@@ -3,7 +3,10 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/neatflowcv/bival/internal/bilist"
@@ -20,12 +23,31 @@ func (cmd *AnalyzeCmd) Run() error {
 }
 
 func analyzeFile(path string, logger *log.Logger) error {
+	file, err := os.Open(filepath.Clean(path))
+	if err != nil {
+		return fmt.Errorf("open %s: %w", path, err)
+	}
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	reader := bilist.NewReader(file)
 	counts := map[string]int{}
 	total := 0
 
 	var prevName string
 
-	err := bilist.ReadFile(path, func(record *bilist.Record) error {
+	for {
+		record, err := reader.Read()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+
+		if err != nil {
+			return fmt.Errorf("read record: %w", err)
+		}
+
 		name := recordName(record)
 		if prevName != "" && name < prevName {
 			return fmt.Errorf(
@@ -47,11 +69,6 @@ func analyzeFile(path string, logger *log.Logger) error {
 
 		counts[record.Type]++
 		logger.Printf("ok type=%s name=%q idx=%q entry=%T", record.Type, name, record.Idx, entry)
-
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("analyze file: %w", err)
 	}
 
 	keys := make([]string, 0, len(counts))

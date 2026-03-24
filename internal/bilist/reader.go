@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 )
 
 var (
@@ -68,7 +66,10 @@ type Key struct {
 
 // Reader streams bilist records from a JSON array source.
 type Reader struct {
-	dec *json.Decoder
+	dec              *json.Decoder
+	started          bool
+	finished         bool
+	closingTokenRead bool
 }
 
 // NewReader returns a Reader that decodes bilist records from r.
@@ -76,62 +77,63 @@ func NewReader(r io.Reader) *Reader {
 	return &Reader{dec: json.NewDecoder(r)}
 }
 
-// ReadFile opens a JSON file whose top-level value is an array and decodes
-// each element one at a time. It keeps memory usage bounded because it never
-// builds the full slice in memory.
-func ReadFile(path string, visit func(*Record) error) error {
-	file, err := os.Open(filepath.Clean(path))
-	if err != nil {
-		return fmt.Errorf("open %s: %w", path, err)
+// Read decodes one top-level array item at a time.
+func (r *Reader) Read() (*Record, error) {
+	if r.finished {
+		return nil, io.EOF
 	}
 
-	defer func() {
-		_ = file.Close()
-	}()
+	if !r.started {
+		tok, err := r.dec.Token()
+		if err != nil {
+			return nil, fmt.Errorf("read opening token: %w", err)
+		}
 
-	return Read(file, visit)
+		delim, isDelim := tok.(json.Delim)
+		if !isDelim || delim != '[' {
+			return nil, fmt.Errorf("%w: got %v", errExpectedTopLevelArray, tok)
+		}
+
+		r.started = true
+	}
+
+	if !r.dec.More() {
+		err := r.readClosingToken()
+		if err != nil {
+			return nil, err
+		}
+
+		r.finished = true
+
+		return nil, io.EOF
+	}
+
+	var record Record
+
+	err := r.dec.Decode(&record)
+	if err != nil {
+		return nil, fmt.Errorf("decode record: %w", err)
+	}
+
+	return &record, nil
 }
 
-// Read streams records from r and calls visit for each decoded item.
-func Read(r io.Reader, visit func(*Record) error) error {
-	return NewReader(r).Read(visit)
-}
+func (r *Reader) readClosingToken() error {
+	if r.closingTokenRead {
+		return nil
+	}
 
-// Read decodes each top-level array item and passes it to visit.
-func (r *Reader) Read(visit func(*Record) error) error {
 	tok, err := r.dec.Token()
-	if err != nil {
-		return fmt.Errorf("read opening token: %w", err)
-	}
-
-	delim, isDelim := tok.(json.Delim)
-	if !isDelim || delim != '[' {
-		return fmt.Errorf("%w: got %v", errExpectedTopLevelArray, tok)
-	}
-
-	for r.dec.More() {
-		var record Record
-
-		err := r.dec.Decode(&record)
-		if err != nil {
-			return fmt.Errorf("decode record: %w", err)
-		}
-
-		err = visit(&record)
-		if err != nil {
-			return err
-		}
-	}
-
-	tok, err = r.dec.Token()
 	if err != nil {
 		return fmt.Errorf("read closing token: %w", err)
 	}
 
-	delim, isDelim = tok.(json.Delim)
+	delim, isDelim := tok.(json.Delim)
 	if !isDelim || delim != ']' {
 		return fmt.Errorf("%w: got %v", errExpectedClosingArray, tok)
 	}
+
+	r.closingTokenRead = true
 
 	return nil
 }
