@@ -14,7 +14,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/neatflowcv/bival"
+	"github.com/neatflowcv/bival/internal/bilist"
 )
 
 const chunkRecordOverhead = 16
@@ -178,7 +178,7 @@ func readChunkRecord(dec *json.Decoder, seq int64) (*chunkRecord, int64, error) 
 		return nil, 0, fmt.Errorf("decode raw record: %w", err)
 	}
 
-	var record bival.Record
+	var record bilist.Record
 
 	err = json.Unmarshal(raw, &record)
 	if err != nil {

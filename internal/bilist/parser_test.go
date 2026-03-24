@@ -1,25 +1,23 @@
-package bival_test
+package bilist_test
 
 import (
 	"testing"
 
-	"github.com/neatflowcv/bival"
+	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/stretchr/testify/require"
 )
 
 func TestParseFileSample(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	var (
 		count     int
 		totalSize int64
-		first     bival.Record
-		last      bival.Record
+		first     bilist.Record
+		last      bilist.Record
 	)
 
-	// Act
-	err := bival.ParseFile("sample.json", func(record *bival.Record) error {
+	err := bilist.ParseFile("../../sample.json", func(record *bilist.Record) error {
 		count++
 		totalSize += record.Entry.Meta.Size
 
@@ -32,7 +30,6 @@ func TestParseFileSample(t *testing.T) {
 		return nil
 	})
 
-	// Assert
 	require.NoError(t, err)
 	require.Equal(t, 4, count)
 	require.EqualValues(t, 10, totalSize)

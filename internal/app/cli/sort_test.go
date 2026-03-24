@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/neatflowcv/bival"
+	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/stretchr/testify/require"
 )
 
@@ -207,14 +207,14 @@ func writeRecords(t *testing.T, path string, records []map[string]any) {
 	require.NoError(t, err)
 }
 
-func readRecords(t *testing.T, path string) []bival.Record {
+func readRecords(t *testing.T, path string) []bilist.Record {
 	t.Helper()
 
 	// #nosec G304 -- test reads a file created in t.TempDir().
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 
-	var records []bival.Record
+	var records []bilist.Record
 
 	err = json.Unmarshal(data, &records)
 	require.NoError(t, err)

@@ -6,7 +6,7 @@ import (
 	"log"
 	"slices"
 
-	"github.com/neatflowcv/bival"
+	"github.com/neatflowcv/bival/internal/bilist"
 )
 
 var errInputNotSorted = errors.New("input must be sorted by name")
@@ -25,7 +25,7 @@ func analyzeFile(path string, logger *log.Logger) error {
 
 	var prevName string
 
-	err := bival.ParseFile(path, func(record *bival.Record) error {
+	err := bilist.ParseFile(path, func(record *bilist.Record) error {
 		name := recordName(record)
 		if prevName != "" && name < prevName {
 			return fmt.Errorf(
@@ -69,7 +69,7 @@ func analyzeFile(path string, logger *log.Logger) error {
 	return nil
 }
 
-func recordName(record *bival.Record) string {
+func recordName(record *bilist.Record) string {
 	if record.Type == "olh" {
 		return record.Entry.Key.Name
 	}

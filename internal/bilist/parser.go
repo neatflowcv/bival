@@ -1,4 +1,4 @@
-package bival
+package bilist
 
 import (
 	"encoding/json"

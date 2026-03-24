@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/neatflowcv/bival"
+	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
 var errUnsupportedRecordType = errors.New("unsupported record type")
 
-func buildEntry(record *bival.Record) (any, error) {
+func buildEntry(record *bilist.Record) (any, error) {
 	switch record.Type {
 	case "instance":
 		return domain.NewInstanceEntry(newDirEntry(record)), nil
@@ -33,7 +33,7 @@ func buildEntry(record *bival.Record) (any, error) {
 	}
 }
 
-func newDirEntry(record *bival.Record) *domain.DirEntry {
+func newDirEntry(record *bilist.Record) *domain.DirEntry {
 	return domain.NewDirEntry(
 		record.Type,
 		[]byte(record.Idx),
