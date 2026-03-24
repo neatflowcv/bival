@@ -151,7 +151,7 @@ func TestAnalyzeFileSummarizesSortedInput(t *testing.T) {
 	require.Contains(t, buf.String(), "summary type=plain count=1")
 }
 
-func TestAnalyzeFileRejectsUnsortedInput(t *testing.T) {
+func TestAnalyzeFileAcceptsUnsortedInput(t *testing.T) {
 	t.Parallel()
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
@@ -165,7 +165,11 @@ func TestAnalyzeFileRejectsUnsortedInput(t *testing.T) {
 	logger := log.New(&buf, "", 0)
 
 	err := analyzeFile(inputPath, logger)
-	require.ErrorContains(t, err, "input must be sorted by name")
+	require.NoError(t, err)
+	require.Contains(t, buf.String(), "ok type=plain name=\"beta\" idx=\"beta-1\"")
+	require.Contains(t, buf.String(), "ok type=plain name=\"alpha\" idx=\"alpha-1\"")
+	require.Contains(t, buf.String(), "summary total=2")
+	require.Contains(t, buf.String(), "summary type=plain count=2")
 }
 
 func TestAnalyzeFileRejectsUnsupportedType(t *testing.T) {

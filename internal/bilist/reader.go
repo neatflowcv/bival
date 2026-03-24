@@ -74,7 +74,12 @@ type Reader struct {
 
 // NewReader returns a Reader that decodes bilist records from r.
 func NewReader(r io.Reader) *Reader {
-	return &Reader{dec: json.NewDecoder(r)}
+	return &Reader{
+		dec:              json.NewDecoder(r),
+		started:          false,
+		finished:         false,
+		closingTokenRead: false,
+	}
 }
 
 // Read decodes one top-level array item at a time.
