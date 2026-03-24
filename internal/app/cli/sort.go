@@ -21,8 +21,6 @@ const chunkRecordOverhead = 16
 
 var (
 	errInvalidChunkBytes = errors.New("chunk-bytes must be greater than zero")
-	errExpectedTopArray  = errors.New("expected top-level array")
-	errExpectedEndArray  = errors.New("expected closing array")
 	errInvalidHeapItem   = errors.New("invalid heap item type")
 )
 
@@ -92,12 +90,7 @@ type chunkRecord struct {
 }
 
 func writeSortedChunks(r io.Reader, tempDir string, chunkBytes int64) ([]string, error) {
-	dec := json.NewDecoder(r)
-
-	err := expectArrayStart(dec)
-	if err != nil {
-		return nil, err
-	}
+	reader := bilist.NewReader(r)
 
 	var (
 		chunkPaths []string
@@ -123,8 +116,12 @@ func writeSortedChunks(r io.Reader, tempDir string, chunkBytes int64) ([]string,
 		return nil
 	}
 
-	for dec.More() {
-		record, recordSizeBytes, readErr := readChunkRecord(dec, seq)
+	for {
+		record, recordSizeBytes, readErr := readChunkRecord(reader, seq)
+		if errors.Is(readErr, io.EOF) {
+			break
+		}
+
 		if readErr != nil {
 			return nil, readErr
 		}
@@ -133,18 +130,13 @@ func writeSortedChunks(r io.Reader, tempDir string, chunkBytes int64) ([]string,
 		sizeBytes += recordSizeBytes
 		seq++
 
-		err = flushRecordsIfNeeded(sizeBytes, chunkBytes, flush)
+		err := flushRecordsIfNeeded(sizeBytes, chunkBytes, flush)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	err = expectArrayEnd(dec)
-	if err != nil {
-		return nil, err
-	}
-
-	err = flush()
+	err := flush()
 	if err != nil {
 		return nil, err
 	}
@@ -152,30 +144,10 @@ func writeSortedChunks(r io.Reader, tempDir string, chunkBytes int64) ([]string,
 	return chunkPaths, nil
 }
 
-func expectArrayStart(dec *json.Decoder) error {
-	tok, err := dec.Token()
+func readChunkRecord(reader *bilist.Reader, seq int64) (*chunkRecord, int64, error) {
+	raw, err := reader.ReadRaw()
 	if err != nil {
-		return fmt.Errorf("read opening token: %w", err)
-	}
-
-	return expectDelimiter(tok, '[', errExpectedTopArray)
-}
-
-func expectArrayEnd(dec *json.Decoder) error {
-	tok, err := dec.Token()
-	if err != nil {
-		return fmt.Errorf("read closing token: %w", err)
-	}
-
-	return expectDelimiter(tok, ']', errExpectedEndArray)
-}
-
-func readChunkRecord(dec *json.Decoder, seq int64) (*chunkRecord, int64, error) {
-	var raw json.RawMessage
-
-	err := dec.Decode(&raw)
-	if err != nil {
-		return nil, 0, fmt.Errorf("decode raw record: %w", err)
+		return nil, 0, fmt.Errorf("read raw record: %w", err)
 	}
 
 	var record bilist.Record
@@ -366,15 +338,6 @@ func formatRecord(raw json.RawMessage) ([]byte, error) {
 	}
 
 	return []byte(strings.Join(lines, "\n")), nil
-}
-
-func expectDelimiter(tok json.Token, expected json.Delim, baseErr error) error {
-	delim, ok := tok.(json.Delim)
-	if !ok || delim != expected {
-		return fmt.Errorf("%w: got %v", baseErr, tok)
-	}
-
-	return nil
 }
 
 func seedMergeHeap(

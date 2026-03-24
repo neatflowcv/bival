@@ -109,6 +109,42 @@ func TestSortFileWritesIndentedJSON(t *testing.T) {
 	require.True(t, len(data) > 0 && data[len(data)-1] == '\n')
 }
 
+func TestSortFilePreservesUnknownFields(t *testing.T) {
+	t.Parallel()
+
+	inputPath := filepath.Join(t.TempDir(), "input.json")
+	outputPath := filepath.Join(t.TempDir(), "output.json")
+
+	writeRecords(t, inputPath, []map[string]any{
+		{
+			"type": "plain",
+			"idx":  "beta-1",
+			"entry": map[string]any{
+				"name": "beta",
+			},
+			"unknown_top": "keep-me",
+		},
+		{
+			"type": "plain",
+			"idx":  "alpha-1",
+			"entry": map[string]any{
+				"name":          "alpha",
+				"unknown_entry": "keep-me-too",
+			},
+		},
+	})
+
+	err := sortFile(inputPath, outputPath, 128)
+	require.NoError(t, err)
+
+	// #nosec G304 -- test reads a file created in t.TempDir().
+	data, err := os.ReadFile(outputPath)
+	require.NoError(t, err)
+
+	require.Contains(t, string(data), "\"unknown_top\": \"keep-me\"")
+	require.Contains(t, string(data), "\"unknown_entry\": \"keep-me-too\"")
+}
+
 func TestRunSortCommand(t *testing.T) {
 	t.Parallel()
 
