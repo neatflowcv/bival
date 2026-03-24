@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/neatflowcv/bival"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
@@ -16,85 +14,81 @@ func main() {
 		path = os.Args[1]
 	}
 
-	registry := domain.NewEntryRegistry()
+	counts := map[string]int{}
 
 	err := bival.ParseFile(path, func(record *bival.Record) error {
-		name := record.Entry.Name
-
-		instance := record.Entry.Instance
-		if record.Type == "olh" {
-			name = record.Entry.Key.Name
-			instance = record.Entry.Key.Instance
+		if describeBuiltEntry(record) {
+			counts[record.Type]++
 		}
-
-		if len(record.Entry.PendingMap) > 0 {
-			describeRecord(record)
-
-			return nil
-		}
-
-		if len(record.Entry.PendingLog) > 0 {
-			describeRecord(record)
-
-			return nil
-		}
-
-		entry := newDomainEntry(record, name, instance)
-		if entry == nil {
-			describeRecord(record)
-
-			return nil
-		}
-
-		registry.Add(entry)
-
 		return nil
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = registry.Validate()
-	if err != nil {
-		log.Fatal(err)
+	for recordType, count := range counts {
+		log.Printf("type=%s count=%d", recordType, count)
 	}
 }
 
-func describeRecord(record *bival.Record) {
-	name := record.Entry.Name
-	instance := record.Entry.Instance
-
-	if record.Type == "olh" {
-		name = record.Entry.Key.Name
-		instance = record.Entry.Key.Instance
+func describeBuiltEntry(record *bival.Record) bool {
+	switch record.Type {
+	case "instance":
+		entry := domain.NewInstanceEntry(newDirEntry(record))
+		log.Printf("type=%s entry=%+v", record.Type, entry)
+		return true
+	case "plain":
+		entry := domain.NewPlainEntry(newDirEntry(record))
+		log.Printf("type=%s entry=%+v", record.Type, entry)
+		return true
+	case "olh":
+		entry := domain.NewOLHEntry(
+			record.Type,
+			[]byte(record.Idx),
+			domain.NewOLHPayload(
+				domain.NewKey(record.Entry.Key.Name, record.Entry.Key.Instance),
+				domain.NewOLHState(record.Entry.DeleteMarker, record.Entry.PendingRemoval, record.Entry.Exists),
+				record.Entry.Epoch,
+				nil,
+				record.Entry.Tag,
+			),
+		)
+		log.Printf("type=%s entry=%+v", record.Type, entry)
+		return true
+	default:
+		log.Printf("skip unsupported type=%s idx=%s", record.Type, record.Idx)
+		return false
 	}
-
-	log.Printf("name=%q type=%s instance=%q", name, record.Type, instance)
 }
 
-func newDomainEntry(record *bival.Record, name string, instance string) *domain.Entry {
-	mtime, err := parseMTime(record.Entry.Meta.MTime)
-	if err != nil {
-		return nil
-	}
-
-	entry, validationErr := domain.NewEntry(domain.Kind(record.Type), name, instance, mtime)
-	if validationErr != nil {
-		return nil
-	}
-
-	return entry
-}
-
-func parseMTime(value string) (time.Time, error) {
-	if value == "" || value == "0.000000" {
-		return time.Time{}, nil
-	}
-
-	parsed, err := time.Parse(time.RFC3339Nano, value)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("parse RFC3339Nano time: %w", err)
-	}
-
-	return parsed, nil
+func newDirEntry(record *bival.Record) *domain.DirEntry {
+	return domain.NewDirEntry(
+		record.Type,
+		[]byte(record.Idx),
+		domain.NewDirPayload(
+			domain.NewKey(record.Entry.Name, record.Entry.Instance),
+			domain.NewDirVersionInfo(
+				domain.NewVersion(record.Entry.Ver.Pool, record.Entry.Ver.Epoch),
+				record.Entry.VersionedEpoch,
+			),
+			domain.NewDirState(
+				record.Entry.Locator,
+				record.Entry.Exists,
+				record.Entry.Tag,
+				record.Entry.Flags,
+			),
+			domain.NewMeta(
+				domain.NewObjectSpec(
+					record.Entry.Meta.Category,
+					record.Entry.Meta.Size,
+					record.Entry.Meta.AccountedSize,
+					record.Entry.Meta.Appendable,
+				),
+				domain.NewAuditInfo(record.Entry.Meta.MTime, record.Entry.Meta.ETag),
+				domain.NewContentInfo(record.Entry.Meta.StorageClass, record.Entry.Meta.ContentType),
+				domain.NewOwner(record.Entry.Meta.Owner, record.Entry.Meta.OwnerDisplayName),
+			),
+			nil,
+		),
+	)
 }
