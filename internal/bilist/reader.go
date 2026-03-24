@@ -84,6 +84,27 @@ func NewReader(r io.Reader) *Reader {
 
 // Read decodes one top-level array item at a time.
 func (r *Reader) Read() (*Record, error) {
+	raw, err := r.readRaw()
+	if err != nil {
+		return nil, err
+	}
+
+	var record Record
+
+	err = json.Unmarshal(raw, &record)
+	if err != nil {
+		return nil, fmt.Errorf("decode record: %w", err)
+	}
+
+	return &record, nil
+}
+
+// ReadRaw decodes one top-level array item at a time and returns its raw JSON.
+func (r *Reader) ReadRaw() (json.RawMessage, error) {
+	return r.readRaw()
+}
+
+func (r *Reader) readRaw() (json.RawMessage, error) {
 	if r.finished {
 		return nil, io.EOF
 	}
@@ -113,14 +134,14 @@ func (r *Reader) Read() (*Record, error) {
 		return nil, io.EOF
 	}
 
-	var record Record
+	var raw json.RawMessage
 
-	err := r.dec.Decode(&record)
+	err := r.dec.Decode(&raw)
 	if err != nil {
-		return nil, fmt.Errorf("decode record: %w", err)
+		return nil, fmt.Errorf("decode raw record: %w", err)
 	}
 
-	return &record, nil
+	return raw, nil
 }
 
 func (r *Reader) readClosingToken() error {

@@ -1,6 +1,7 @@
 package bilist_test
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -61,6 +62,44 @@ func TestReaderReadSample(t *testing.T) {
 	require.ErrorIs(t, err, io.EOF)
 }
 
+func TestReaderReadRawSample(t *testing.T) {
+	t.Parallel()
+
+	file, err := os.Open("../../sample.json")
+	require.NoError(t, err)
+
+	defer func() {
+		_ = file.Close()
+	}()
+
+	reader := bilist.NewReader(file)
+
+	count := 0
+
+	for {
+		raw, err := reader.ReadRaw()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+
+		require.NoError(t, err)
+		require.NotEmpty(t, raw)
+
+		var record bilist.Record
+
+		err = json.Unmarshal(raw, &record)
+		require.NoError(t, err)
+
+		count++
+	}
+
+	require.Equal(t, 4, count)
+
+	raw, err := reader.ReadRaw()
+	require.Nil(t, raw)
+	require.ErrorIs(t, err, io.EOF)
+}
+
 func TestReaderReadEmptyArray(t *testing.T) {
 	t.Parallel()
 
@@ -75,6 +114,20 @@ func TestReaderReadEmptyArray(t *testing.T) {
 	require.ErrorIs(t, err, io.EOF)
 }
 
+func TestReaderReadRawEmptyArray(t *testing.T) {
+	t.Parallel()
+
+	reader := bilist.NewReader(strings.NewReader("[]"))
+
+	raw, err := reader.ReadRaw()
+	require.Nil(t, raw)
+	require.ErrorIs(t, err, io.EOF)
+
+	raw, err = reader.ReadRaw()
+	require.Nil(t, raw)
+	require.ErrorIs(t, err, io.EOF)
+}
+
 func TestReaderReadRejectsNonArray(t *testing.T) {
 	t.Parallel()
 
@@ -82,6 +135,16 @@ func TestReaderReadRejectsNonArray(t *testing.T) {
 
 	record, err := reader.Read()
 	require.Nil(t, record)
+	require.EqualError(t, err, "expected top-level array: got {")
+}
+
+func TestReaderReadRawRejectsNonArray(t *testing.T) {
+	t.Parallel()
+
+	reader := bilist.NewReader(strings.NewReader(`{"type":"plain"}`))
+
+	raw, err := reader.ReadRaw()
+	require.Nil(t, raw)
 	require.EqualError(t, err, "expected top-level array: got {")
 }
 
@@ -96,5 +159,19 @@ func TestReaderReadRejectsMissingClosingArray(t *testing.T) {
 
 	record, err = reader.Read()
 	require.Nil(t, record)
+	require.EqualError(t, err, "read closing token: EOF")
+}
+
+func TestReaderReadRawRejectsMissingClosingArray(t *testing.T) {
+	t.Parallel()
+
+	reader := bilist.NewReader(strings.NewReader(`[{"type":"plain","idx":"1","entry":{}}`))
+
+	raw, err := reader.ReadRaw()
+	require.NoError(t, err)
+	require.NotNil(t, raw)
+
+	raw, err = reader.ReadRaw()
+	require.Nil(t, raw)
 	require.EqualError(t, err, "read closing token: EOF")
 }
