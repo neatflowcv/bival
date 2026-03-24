@@ -2,7 +2,10 @@ module github.com/neatflowcv/bival
 
 go 1.26.1
 
-require github.com/stretchr/testify v1.11.1
+require (
+	github.com/alecthomas/kong v1.14.0
+	github.com/stretchr/testify v1.11.1
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
