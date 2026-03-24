@@ -66,10 +66,20 @@ type Key struct {
 	Instance string `json:"instance"`
 }
 
-// ParseFile opens a JSON file whose top-level value is an array and decodes
+// Reader streams bilist records from a JSON array source.
+type Reader struct {
+	dec *json.Decoder
+}
+
+// NewReader returns a Reader that decodes bilist records from r.
+func NewReader(r io.Reader) *Reader {
+	return &Reader{dec: json.NewDecoder(r)}
+}
+
+// ReadFile opens a JSON file whose top-level value is an array and decodes
 // each element one at a time. It keeps memory usage bounded because it never
 // builds the full slice in memory.
-func ParseFile(path string, visit func(*Record) error) error {
+func ReadFile(path string, visit func(*Record) error) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("open %s: %w", path, err)
@@ -79,14 +89,17 @@ func ParseFile(path string, visit func(*Record) error) error {
 		_ = file.Close()
 	}()
 
-	return Parse(file, visit)
+	return Read(file, visit)
 }
 
-// Parse streams records from r and calls visit for each decoded item.
-func Parse(r io.Reader, visit func(*Record) error) error {
-	dec := json.NewDecoder(r)
+// Read streams records from r and calls visit for each decoded item.
+func Read(r io.Reader, visit func(*Record) error) error {
+	return NewReader(r).Read(visit)
+}
 
-	tok, err := dec.Token()
+// Read decodes each top-level array item and passes it to visit.
+func (r *Reader) Read(visit func(*Record) error) error {
+	tok, err := r.dec.Token()
 	if err != nil {
 		return fmt.Errorf("read opening token: %w", err)
 	}
@@ -96,10 +109,10 @@ func Parse(r io.Reader, visit func(*Record) error) error {
 		return fmt.Errorf("%w: got %v", errExpectedTopLevelArray, tok)
 	}
 
-	for dec.More() {
+	for r.dec.More() {
 		var record Record
 
-		err := dec.Decode(&record)
+		err := r.dec.Decode(&record)
 		if err != nil {
 			return fmt.Errorf("decode record: %w", err)
 		}
@@ -110,7 +123,7 @@ func Parse(r io.Reader, visit func(*Record) error) error {
 		}
 	}
 
-	tok, err = dec.Token()
+	tok, err = r.dec.Token()
 	if err != nil {
 		return fmt.Errorf("read closing token: %w", err)
 	}

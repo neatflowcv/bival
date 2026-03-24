@@ -25,7 +25,7 @@ func analyzeFile(path string, logger *log.Logger) error {
 
 	var prevName string
 
-	err := bilist.ParseFile(path, func(record *bilist.Record) error {
+	err := bilist.ReadFile(path, func(record *bilist.Record) error {
 		name := recordName(record)
 		if prevName != "" && name < prevName {
 			return fmt.Errorf(

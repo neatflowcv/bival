@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseFileSample(t *testing.T) {
+func TestReadFileSample(t *testing.T) {
 	t.Parallel()
 
 	var (
@@ -17,7 +17,7 @@ func TestParseFileSample(t *testing.T) {
 		last      bilist.Record
 	)
 
-	err := bilist.ParseFile("../../sample.json", func(record *bilist.Record) error {
+	err := bilist.ReadFile("../../sample.json", func(record *bilist.Record) error {
 		count++
 		totalSize += record.Entry.Meta.Size
 
