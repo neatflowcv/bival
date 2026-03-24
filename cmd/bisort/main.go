@@ -18,54 +18,70 @@ import (
 	"github.com/neatflowcv/bival"
 )
 
-const defaultChunkBytes int64 = 64 << 20
+const (
+	defaultChunkBytes   int64 = 64 << 20
+	requiredArgCount          = 2
+	chunkRecordOverhead       = 16
+)
+
+var (
+	errInvalidChunkBytes = errors.New("chunk-bytes must be greater than zero")
+	errUsage             = errors.New("usage: bisort <input> <output> --chunk-bytes N")
+	errExpectedTopArray  = errors.New("expected top-level array")
+	errExpectedEndArray  = errors.New("expected closing array")
+	errInvalidHeapItem   = errors.New("invalid heap item type")
+)
 
 func main() {
-	if err := run(os.Args[1:]); err != nil {
+	err := run(os.Args[1:])
+	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func run(args []string) error {
-	fs := flag.NewFlagSet("bisort", flag.ContinueOnError)
-	fs.SetOutput(io.Discard)
+	flagSet := flag.NewFlagSet("bisort", flag.ContinueOnError)
+	flagSet.SetOutput(io.Discard)
 
-	chunkBytes := fs.Int64("chunk-bytes", defaultChunkBytes, "maximum in-memory chunk size in bytes")
+	chunkBytes := flagSet.Int64("chunk-bytes", defaultChunkBytes, "maximum in-memory chunk size in bytes")
 
 	reorderedArgs := normalizeArgs(args)
 
-	if err := fs.Parse(reorderedArgs); err != nil {
+	err := flagSet.Parse(reorderedArgs)
+	if err != nil {
 		return fmt.Errorf("parse flags: %w", err)
 	}
 
 	if *chunkBytes <= 0 {
-		return errors.New("chunk-bytes must be greater than zero")
+		return errInvalidChunkBytes
 	}
 
-	if fs.NArg() != 2 {
-		return errors.New("usage: bisort <input> <output> --chunk-bytes N")
+	if flagSet.NArg() != requiredArgCount {
+		return errUsage
 	}
 
-	return sortFile(fs.Arg(0), fs.Arg(1), *chunkBytes)
+	return sortFile(flagSet.Arg(0), flagSet.Arg(1), *chunkBytes)
 }
 
 func normalizeArgs(args []string) []string {
 	flags := make([]string, 0, len(args))
 	positionals := make([]string, 0, len(args))
 
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
+	for index := 0; index < len(args); index++ {
+		arg := args[index]
 		if arg == "--" {
-			positionals = append(positionals, args[i+1:]...)
+			positionals = append(positionals, args[index+1:]...)
+
 			break
 		}
 
 		if len(arg) > 0 && arg[0] == '-' {
 			flags = append(flags, arg)
-			if !hasInlineValue(arg) && flagNeedsValue(arg) && i+1 < len(args) {
-				i++
-				flags = append(flags, args[i])
+			if !hasInlineValue(arg) && flagNeedsValue(arg) && index+1 < len(args) {
+				index++
+				flags = append(flags, args[index])
 			}
+
 			continue
 		}
 
@@ -76,7 +92,7 @@ func normalizeArgs(args []string) []string {
 }
 
 func hasInlineValue(arg string) bool {
-	for i := 0; i < len(arg); i++ {
+	for i := range len(arg) {
 		if arg[i] == '=' {
 			return true
 		}
@@ -96,6 +112,7 @@ func sortFile(inputPath string, outputPath string, chunkBytes int64) error {
 	if err != nil {
 		return fmt.Errorf("open input: %w", err)
 	}
+
 	defer func() {
 		_ = inputFile.Close()
 	}()
@@ -104,6 +121,7 @@ func sortFile(inputPath string, outputPath string, chunkBytes int64) error {
 	if err != nil {
 		return fmt.Errorf("create temp dir: %w", err)
 	}
+
 	defer func() {
 		_ = os.RemoveAll(tempDir)
 	}()
@@ -120,9 +138,11 @@ func sortFile(inputPath string, outputPath string, chunkBytes int64) error {
 
 	mergeErr := mergeChunks(outputFile, chunkPaths)
 	closeErr := outputFile.Close()
+
 	if mergeErr != nil {
 		return mergeErr
 	}
+
 	if closeErr != nil {
 		return fmt.Errorf("close output: %w", closeErr)
 	}
@@ -139,14 +159,9 @@ type chunkRecord struct {
 func writeSortedChunks(r io.Reader, tempDir string, chunkBytes int64) ([]string, error) {
 	dec := json.NewDecoder(r)
 
-	tok, err := dec.Token()
+	err := expectArrayStart(dec)
 	if err != nil {
-		return nil, fmt.Errorf("read opening token: %w", err)
-	}
-
-	delim, ok := tok.(json.Delim)
-	if !ok || delim != '[' {
-		return nil, fmt.Errorf("expected top-level array: got %v", tok)
+		return nil, err
 	}
 
 	var (
@@ -174,47 +189,82 @@ func writeSortedChunks(r io.Reader, tempDir string, chunkBytes int64) ([]string,
 	}
 
 	for dec.More() {
-		var raw json.RawMessage
-		if err := dec.Decode(&raw); err != nil {
-			return nil, fmt.Errorf("decode raw record: %w", err)
+		record, recordSizeBytes, readErr := readChunkRecord(dec, seq)
+		if readErr != nil {
+			return nil, readErr
 		}
 
-		var record bival.Record
-		if err := json.Unmarshal(raw, &record); err != nil {
-			return nil, fmt.Errorf("decode record: %w", err)
-		}
-
-		name := recordName(&record)
-		records = append(records, chunkRecord{
-			Seq:  seq,
-			Name: name,
-			Raw:  raw,
-		})
-		sizeBytes += int64(len(raw) + len(name) + 16)
+		records = append(records, *record)
+		sizeBytes += recordSizeBytes
 		seq++
 
-		if sizeBytes >= chunkBytes {
-			if err := flush(); err != nil {
-				return nil, err
-			}
+		err = flushRecordsIfNeeded(sizeBytes, chunkBytes, flush)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	tok, err = dec.Token()
+	err = expectArrayEnd(dec)
 	if err != nil {
-		return nil, fmt.Errorf("read closing token: %w", err)
+		return nil, err
 	}
 
-	delim, ok = tok.(json.Delim)
-	if !ok || delim != ']' {
-		return nil, fmt.Errorf("expected closing array: got %v", tok)
-	}
-
-	if err := flush(); err != nil {
+	err = flush()
+	if err != nil {
 		return nil, err
 	}
 
 	return chunkPaths, nil
+}
+
+func expectArrayStart(dec *json.Decoder) error {
+	tok, err := dec.Token()
+	if err != nil {
+		return fmt.Errorf("read opening token: %w", err)
+	}
+
+	return expectDelimiter(tok, '[', errExpectedTopArray)
+}
+
+func expectArrayEnd(dec *json.Decoder) error {
+	tok, err := dec.Token()
+	if err != nil {
+		return fmt.Errorf("read closing token: %w", err)
+	}
+
+	return expectDelimiter(tok, ']', errExpectedEndArray)
+}
+
+func readChunkRecord(dec *json.Decoder, seq int64) (*chunkRecord, int64, error) {
+	var raw json.RawMessage
+
+	err := dec.Decode(&raw)
+	if err != nil {
+		return nil, 0, fmt.Errorf("decode raw record: %w", err)
+	}
+
+	var record bival.Record
+
+	err = json.Unmarshal(raw, &record)
+	if err != nil {
+		return nil, 0, fmt.Errorf("decode record: %w", err)
+	}
+
+	name := recordName(&record)
+
+	return &chunkRecord{
+		Seq:  seq,
+		Name: name,
+		Raw:  raw,
+	}, int64(len(raw) + len(name) + chunkRecordOverhead), nil
+}
+
+func flushRecordsIfNeeded(sizeBytes int64, chunkBytes int64, flush func() error) error {
+	if sizeBytes < chunkBytes {
+		return nil
+	}
+
+	return flush()
 }
 
 func writeChunkFile(tempDir string, records []chunkRecord) (string, error) {
@@ -227,30 +277,36 @@ func writeChunkFile(tempDir string, records []chunkRecord) (string, error) {
 
 	enc := json.NewEncoder(file)
 	for _, record := range records {
-		if err := enc.Encode(record); err != nil {
+		err := enc.Encode(record)
+		if err != nil {
 			_ = file.Close()
+
 			return "", fmt.Errorf("write chunk file: %w", err)
 		}
 	}
 
-	if err := file.Close(); err != nil {
+	err = file.Close()
+	if err != nil {
 		return "", fmt.Errorf("close chunk file: %w", err)
 	}
 
 	return file.Name(), nil
 }
 
-func compareChunkRecords(a chunkRecord, b chunkRecord) int {
-	if a.Name < b.Name {
+func compareChunkRecords(leftRecord chunkRecord, rightRecord chunkRecord) int {
+	if leftRecord.Name < rightRecord.Name {
 		return -1
 	}
-	if a.Name > b.Name {
+
+	if leftRecord.Name > rightRecord.Name {
 		return 1
 	}
-	if a.Seq < b.Seq {
+
+	if leftRecord.Seq < rightRecord.Seq {
 		return -1
 	}
-	if a.Seq > b.Seq {
+
+	if leftRecord.Seq > rightRecord.Seq {
 		return 1
 	}
 
@@ -284,15 +340,22 @@ func openChunkReader(path string) (*chunkReader, error) {
 
 func (r *chunkReader) Next() (*chunkRecord, error) {
 	var record chunkRecord
-	if err := r.dec.Decode(&record); err != nil {
-		return nil, err
+
+	err := r.dec.Decode(&record)
+	if err != nil {
+		return nil, fmt.Errorf("decode chunk record: %w", err)
 	}
 
 	return &record, nil
 }
 
 func (r *chunkReader) Close() error {
-	return r.file.Close()
+	err := r.file.Close()
+	if err != nil {
+		return fmt.Errorf("close chunk reader: %w", err)
+	}
+
+	return nil
 }
 
 type heapItem struct {
@@ -302,20 +365,25 @@ type heapItem struct {
 
 type mergeHeap []*heapItem
 
-func (h mergeHeap) Len() int {
-	return len(h)
+func (h *mergeHeap) Len() int {
+	return len(*h)
 }
 
-func (h mergeHeap) Less(i int, j int) bool {
-	return compareChunkRecords(h[i].record, h[j].record) < 0
+func (h *mergeHeap) Less(i int, j int) bool {
+	return compareChunkRecords((*h)[i].record, (*h)[j].record) < 0
 }
 
-func (h mergeHeap) Swap(i int, j int) {
-	h[i], h[j] = h[j], h[i]
+func (h *mergeHeap) Swap(i int, j int) {
+	(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
 }
 
 func (h *mergeHeap) Push(x any) {
-	*h = append(*h, x.(*heapItem))
+	item, ok := x.(*heapItem)
+	if !ok {
+		panic(errInvalidHeapItem)
+	}
+
+	*h = append(*h, item)
 }
 
 func (h *mergeHeap) Pop() any {
@@ -323,114 +391,41 @@ func (h *mergeHeap) Pop() any {
 	n := len(old)
 	item := old[n-1]
 	*h = old[:n-1]
+
 	return item
 }
 
 func mergeChunks(w io.Writer, chunkPaths []string) error {
-	bw := bufio.NewWriter(w)
+	bufferedWriter := bufio.NewWriter(w)
+
 	defer func() {
-		_ = bw.Flush()
+		_ = bufferedWriter.Flush()
 	}()
 
 	readers := make([]*chunkReader, 0, len(chunkPaths))
+
 	defer func() {
 		for _, reader := range readers {
 			_ = reader.Close()
 		}
 	}()
 
-	h := make(mergeHeap, 0, len(chunkPaths))
-	for _, path := range chunkPaths {
-		reader, err := openChunkReader(path)
-		if err != nil {
-			return err
-		}
-		readers = append(readers, reader)
+	mergeItemHeap := make(mergeHeap, 0, len(chunkPaths))
 
-		record, err := reader.Next()
-		if errors.Is(err, io.EOF) {
-			continue
-		}
-		if err != nil {
-			return fmt.Errorf("read chunk file: %w", err)
-		}
-
-		heap.Push(&h, &heapItem{
-			record: *record,
-			reader: reader,
-		})
-	}
-
-	if h.Len() == 0 {
-		if _, err := io.WriteString(bw, "[]\n"); err != nil {
-			return fmt.Errorf("write empty array: %w", err)
-		}
-
-		if err := bw.Flush(); err != nil {
-			return fmt.Errorf("flush output: %w", err)
-		}
-
-		return nil
-	}
-
-	_, err := io.WriteString(bw, "[\n")
+	readers, err := seedMergeHeap(chunkPaths, &mergeItemHeap)
 	if err != nil {
-		return fmt.Errorf("write opening array: %w", err)
+		return err
 	}
 
-	first := true
-	for h.Len() > 0 {
-		item := heap.Pop(&h).(*heapItem)
-
-		if !first {
-			if _, err := io.WriteString(bw, ",\n"); err != nil {
-				return fmt.Errorf("write separator: %w", err)
-			}
-		}
-		first = false
-
-		formatted, err := formatRecord(item.record.Raw)
-		if err != nil {
-			return fmt.Errorf("format record: %w", err)
-		}
-
-		if _, err := bw.Write(formatted); err != nil {
-			return fmt.Errorf("write record: %w", err)
-		}
-
-		next, err := item.reader.Next()
-		if errors.Is(err, io.EOF) {
-			continue
-		}
-		if err != nil {
-			return fmt.Errorf("read chunk file: %w", err)
-		}
-
-		item.record = *next
-		heap.Push(&h, item)
-	}
-
-	if !first {
-		if _, err := io.WriteString(bw, "\n"); err != nil {
-			return fmt.Errorf("write trailing newline: %w", err)
-		}
-	}
-
-	if _, err := io.WriteString(bw, "]\n"); err != nil {
-		return fmt.Errorf("write closing array: %w", err)
-	}
-
-	if err := bw.Flush(); err != nil {
-		return fmt.Errorf("flush output: %w", err)
-	}
-
-	return nil
+	return writeMergedRecords(bufferedWriter, &mergeItemHeap)
 }
 
 func formatRecord(raw json.RawMessage) ([]byte, error) {
 	var formatted bytes.Buffer
-	if err := json.Indent(&formatted, raw, "", "    "); err != nil {
-		return nil, err
+
+	err := json.Indent(&formatted, raw, "", "    ")
+	if err != nil {
+		return nil, fmt.Errorf("indent JSON: %w", err)
 	}
 
 	lines := strings.Split(formatted.String(), "\n")
@@ -438,8 +433,187 @@ func formatRecord(raw json.RawMessage) ([]byte, error) {
 		if line == "" {
 			continue
 		}
+
 		lines[i] = "    " + line
 	}
 
 	return []byte(strings.Join(lines, "\n")), nil
+}
+
+func expectDelimiter(tok json.Token, expected json.Delim, baseErr error) error {
+	delim, ok := tok.(json.Delim)
+	if !ok || delim != expected {
+		return fmt.Errorf("%w: got %v", baseErr, tok)
+	}
+
+	return nil
+}
+
+func seedMergeHeap(
+	chunkPaths []string,
+	mergeItemHeap *mergeHeap,
+) ([]*chunkReader, error) {
+	readers := make([]*chunkReader, 0, len(chunkPaths))
+
+	for _, path := range chunkPaths {
+		reader, err := openChunkReader(path)
+		if err != nil {
+			return readers, err
+		}
+
+		readers = append(readers, reader)
+
+		record, readErr := reader.Next()
+		if errors.Is(readErr, io.EOF) {
+			continue
+		}
+
+		if readErr != nil {
+			return readers, fmt.Errorf("read chunk file: %w", readErr)
+		}
+
+		heap.Push(mergeItemHeap, &heapItem{
+			record: *record,
+			reader: reader,
+		})
+	}
+
+	return readers, nil
+}
+
+func writeMergedRecords(bufferedWriter *bufio.Writer, mergeItemHeap *mergeHeap) error {
+	if mergeItemHeap.Len() == 0 {
+		return writeEmptyArray(bufferedWriter)
+	}
+
+	err := writeOpeningArray(bufferedWriter)
+	if err != nil {
+		return err
+	}
+
+	firstRecord := true
+
+	for mergeItemHeap.Len() > 0 {
+		firstRecord, err = writeNextMergedRecord(bufferedWriter, mergeItemHeap, firstRecord)
+		if err != nil {
+			return err
+		}
+	}
+
+	return finishMergedArray(bufferedWriter, firstRecord)
+}
+
+func writeEmptyArray(bufferedWriter *bufio.Writer) error {
+	_, err := io.WriteString(bufferedWriter, "[]\n")
+	if err != nil {
+		return fmt.Errorf("write empty array: %w", err)
+	}
+
+	err = bufferedWriter.Flush()
+	if err != nil {
+		return fmt.Errorf("flush output: %w", err)
+	}
+
+	return nil
+}
+
+func writeOpeningArray(bufferedWriter *bufio.Writer) error {
+	_, err := io.WriteString(bufferedWriter, "[\n")
+	if err != nil {
+		return fmt.Errorf("write opening array: %w", err)
+	}
+
+	return nil
+}
+
+func writeNextMergedRecord(
+	bufferedWriter *bufio.Writer,
+	mergeItemHeap *mergeHeap,
+	firstRecord bool,
+) (bool, error) {
+	item, err := popHeapItem(mergeItemHeap)
+	if err != nil {
+		return firstRecord, err
+	}
+
+	if !firstRecord {
+		_, err = io.WriteString(bufferedWriter, ",\n")
+		if err != nil {
+			return false, fmt.Errorf("write separator: %w", err)
+		}
+	}
+
+	err = writeFormattedRecord(bufferedWriter, item.record.Raw)
+	if err != nil {
+		return false, err
+	}
+
+	err = pushNextRecord(mergeItemHeap, item)
+	if err != nil {
+		return false, err
+	}
+
+	return false, nil
+}
+
+func writeFormattedRecord(bufferedWriter *bufio.Writer, raw json.RawMessage) error {
+	formatted, err := formatRecord(raw)
+	if err != nil {
+		return fmt.Errorf("format record: %w", err)
+	}
+
+	_, err = bufferedWriter.Write(formatted)
+	if err != nil {
+		return fmt.Errorf("write record: %w", err)
+	}
+
+	return nil
+}
+
+func pushNextRecord(mergeItemHeap *mergeHeap, item *heapItem) error {
+	nextRecord, err := item.reader.Next()
+	if errors.Is(err, io.EOF) {
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("read chunk file: %w", err)
+	}
+
+	item.record = *nextRecord
+	heap.Push(mergeItemHeap, item)
+
+	return nil
+}
+
+func finishMergedArray(bufferedWriter *bufio.Writer, firstRecord bool) error {
+	if !firstRecord {
+		_, err := io.WriteString(bufferedWriter, "\n")
+		if err != nil {
+			return fmt.Errorf("write trailing newline: %w", err)
+		}
+	}
+
+	_, err := io.WriteString(bufferedWriter, "]\n")
+	if err != nil {
+		return fmt.Errorf("write closing array: %w", err)
+	}
+
+	err = bufferedWriter.Flush()
+	if err != nil {
+		return fmt.Errorf("flush output: %w", err)
+	}
+
+	return nil
+}
+
+func popHeapItem(mergeItemHeap *mergeHeap) (*heapItem, error) {
+	popped := heap.Pop(mergeItemHeap)
+
+	item, ok := popped.(*heapItem)
+	if !ok {
+		return nil, errInvalidHeapItem
+	}
+
+	return item, nil
 }

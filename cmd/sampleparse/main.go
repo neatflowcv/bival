@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -90,5 +91,10 @@ func parseMTime(value string) (time.Time, error) {
 		return time.Time{}, nil
 	}
 
-	return time.Parse(time.RFC3339Nano, value)
+	parsed, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("parse RFC3339Nano time: %w", err)
+	}
+
+	return parsed, nil
 }

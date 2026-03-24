@@ -62,6 +62,7 @@ func TestSortFileEmptyInput(t *testing.T) {
 	err := sortFile(inputPath, outputPath, 64)
 	require.NoError(t, err)
 
+	// #nosec G304 -- test reads a file created in t.TempDir().
 	data, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
 	require.JSONEq(t, "[]", string(data))
@@ -89,6 +90,7 @@ func TestSortFileWritesIndentedJSON(t *testing.T) {
 	err := sortFile(inputPath, outputPath, 128)
 	require.NoError(t, err)
 
+	// #nosec G304 -- test reads a file created in t.TempDir().
 	data, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
 
@@ -103,17 +105,19 @@ func writeRecords(t *testing.T, path string, records []map[string]any) {
 	data, err := json.Marshal(records)
 	require.NoError(t, err)
 
-	err = os.WriteFile(path, data, 0o644)
+	err = os.WriteFile(path, data, 0o600)
 	require.NoError(t, err)
 }
 
 func readRecords(t *testing.T, path string) []bival.Record {
 	t.Helper()
 
+	// #nosec G304 -- test reads a file created in t.TempDir().
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 
 	var records []bival.Record
+
 	err = json.Unmarshal(data, &records)
 	require.NoError(t, err)
 

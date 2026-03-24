@@ -8,6 +8,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func testMTime1() time.Time {
+	return time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC)
+}
+
+func testMTime2() time.Time {
+	return time.Date(2026, 3, 19, 6, 28, 46, 0, time.UTC)
+}
+
 func TestEntryRegistryAddGroupsByName(t *testing.T) {
 	t.Parallel()
 
@@ -20,7 +28,12 @@ func TestEntryRegistryAddGroupsByName(t *testing.T) {
 	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	instance, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
 	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-2", time.Time{})
@@ -29,7 +42,12 @@ func TestEntryRegistryAddGroupsByName(t *testing.T) {
 	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2", time.Date(2026, 3, 19, 6, 28, 46, 0, time.UTC))
+	instance2, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-2",
+		testMTime2(),
+	)
 	require.NoError(t, err)
 
 	// Act
@@ -72,7 +90,12 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutOLH(t *testing.T) {
 	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	entry, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	entry, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 	registry.Add(plain)
 	registry.Add(entry)
@@ -90,7 +113,12 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutHeadPlain(t *testing.T) 
 	// Arrange
 	registry := domain.NewEntryRegistry()
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	instance, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
 	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})
@@ -103,7 +131,11 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutHeadPlain(t *testing.T) 
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
+	require.ErrorContains(
+		t,
+		err,
+		"versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry",
+	)
 }
 
 func TestEntryRegistryValidateRejectsVersionedSetWithoutVersionPlain(t *testing.T) {
@@ -115,7 +147,12 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutVersionPlain(t *testing.
 	plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	instance, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
 	entry, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})
@@ -128,7 +165,11 @@ func TestEntryRegistryValidateRejectsVersionedSetWithoutVersionPlain(t *testing.
 	err = registry.Validate()
 
 	// Assert
-	require.ErrorContains(t, err, "versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
+	require.ErrorContains(
+		t,
+		err,
+		"versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry",
+	)
 }
 
 func TestEntryRegistryValidateRejectsMoreThanOneOLH(t *testing.T) {
@@ -143,13 +184,23 @@ func TestEntryRegistryValidateRejectsMoreThanOneOLH(t *testing.T) {
 	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance1, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	instance1, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
 	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2", time.Date(2026, 3, 19, 6, 28, 46, 0, time.UTC))
+	instance2, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-2",
+		testMTime2(),
+	)
 	require.NoError(t, err)
 
 	olh1, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})
@@ -204,10 +255,20 @@ func TestEntryRegistryValidateCollectsAllSetErrors(t *testing.T) {
 	group1Plain, err := domain.NewEntry(domain.KindPlain, "group1.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	group1Instance, err := domain.NewEntry(domain.KindInstance, "group1.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	group1Instance, err := domain.NewEntry(
+		domain.KindInstance,
+		"group1.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
-	group2Instance, err := domain.NewEntry(domain.KindInstance, "group2.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	group2Instance, err := domain.NewEntry(
+		domain.KindInstance,
+		"group2.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
 	group2OLH, err := domain.NewEntry(domain.KindOLH, "group2.txt", "instance-1", time.Time{})
@@ -223,7 +284,11 @@ func TestEntryRegistryValidateCollectsAllSetErrors(t *testing.T) {
 
 	// Assert
 	require.ErrorContains(t, err, "versioned set must contain exactly 1 olh entry")
-	require.ErrorContains(t, err, "versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
+	require.ErrorContains(
+		t,
+		err,
+		"versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry",
+	)
 }
 
 func TestEntryRegistryValidateRejectsOLHWithoutMatchingInstance(t *testing.T) {
@@ -237,7 +302,12 @@ func TestEntryRegistryValidateRejectsOLHWithoutMatchingInstance(t *testing.T) {
 	versionPlain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	instance, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
 	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-2", time.Time{})
@@ -264,13 +334,23 @@ func TestEntryRegistryValidateRejectsOLHThatDoesNotReferenceLatestInstance(t *te
 	version1Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance1, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-1", time.Date(2026, 3, 19, 6, 28, 45, 0, time.UTC))
+	instance1, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-1",
+		testMTime1(),
+	)
 	require.NoError(t, err)
 
 	version2Plain, err := domain.NewEntry(domain.KindPlain, "test.txt", "", time.Time{})
 	require.NoError(t, err)
 
-	instance2, err := domain.NewEntry(domain.KindInstance, "test.txt", "instance-2", time.Date(2026, 3, 19, 6, 28, 46, 0, time.UTC))
+	instance2, err := domain.NewEntry(
+		domain.KindInstance,
+		"test.txt",
+		"instance-2",
+		testMTime2(),
+	)
 	require.NoError(t, err)
 
 	olh, err := domain.NewEntry(domain.KindOLH, "test.txt", "instance-1", time.Time{})

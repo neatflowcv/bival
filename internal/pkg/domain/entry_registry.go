@@ -9,9 +9,11 @@ import (
 var (
 	errEntrySetNonVersionedPlain = errors.New("non-versioned set must contain exactly 1 plain entry")
 	errEntrySetVersionedOLH      = errors.New("versioned set must contain exactly 1 olh entry")
-	errEntrySetVersionedPlain    = errors.New("versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry")
-	errEntrySetOLHInstance       = errors.New("versioned set olh must reference an existing instance entry")
-	errEntrySetOLHLatest         = errors.New("versioned set olh must reference the latest instance entry")
+	errEntrySetVersionedPlain    = errors.New(
+		"versioned set must contain exactly 1 head plain entry plus 1 plain entry per instance entry",
+	)
+	errEntrySetOLHInstance = errors.New("versioned set olh must reference an existing instance entry")
+	errEntrySetOLHLatest   = errors.New("versioned set olh must reference the latest instance entry")
 )
 
 type EntryRegistry struct {
