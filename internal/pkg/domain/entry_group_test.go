@@ -13,7 +13,7 @@ func TestEntryGroupAddPlainTracksPendingMap(t *testing.T) {
 
 	group := domain.NewEntryGroup("alpha")
 
-	err := group.AddPlain(newPlainEntry("alpha", "", true))
+	err := group.AddPlain(newPlainEntry("alpha", true))
 	require.NoError(t, err)
 	require.True(t, group.HasPendingEntries())
 }
@@ -38,6 +38,32 @@ func TestEntryGroupAddOLHTracksPendingLog(t *testing.T) {
 	require.True(t, group.HasPendingEntries())
 }
 
+func TestEntryGroupPendingStateMatchesStoredEntries(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+
+	require.False(t, group.HasPendingMap())
+	require.False(t, group.HasPendingLog())
+	require.False(t, group.HasPendingEntries())
+
+	require.NoError(t, group.AddPlain(newPlainEntry("alpha", false)))
+	require.False(t, group.HasPendingMap())
+	require.False(t, group.HasPendingLog())
+	require.False(t, group.HasPendingEntries())
+
+	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", true)))
+	require.True(t, group.HasPendingMap())
+	require.False(t, group.HasPendingLog())
+	require.True(t, group.HasPendingEntries())
+
+	otherGroup := domain.NewEntryGroup("beta")
+	require.NoError(t, otherGroup.AddOLH(newOLHEntry("beta", true)))
+	require.False(t, otherGroup.HasPendingMap())
+	require.True(t, otherGroup.HasPendingLog())
+	require.True(t, otherGroup.HasPendingEntries())
+}
+
 func TestEntryGroupCountsMatchStoredEntries(t *testing.T) {
 	t.Parallel()
 
@@ -47,7 +73,7 @@ func TestEntryGroupCountsMatchStoredEntries(t *testing.T) {
 	require.Zero(t, group.InstanceCount())
 	require.Zero(t, group.OLHCount())
 
-	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "", false)))
+	require.NoError(t, group.AddPlain(newPlainEntry("alpha", false)))
 	require.Equal(t, len(group.PlainEntries()), group.PlainCount())
 
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
@@ -526,7 +552,7 @@ func TestEntryGroupRejectsMismatchedPlainName(t *testing.T) {
 
 	group := domain.NewEntryGroup("alpha")
 
-	err := group.AddPlain(newPlainEntry("beta", "", false))
+	err := group.AddPlain(newPlainEntry("beta", false))
 	require.EqualError(
 		t,
 		err,
@@ -560,11 +586,11 @@ func TestEntryGroupRejectsMismatchedOLHName(t *testing.T) {
 	)
 }
 
-func newPlainEntry(name string, instance string, pending bool) *domain.PlainEntry {
+func newPlainEntry(name string, pending bool) *domain.PlainEntry {
 	return newCustomPlainEntry(
 		name,
 		name,
-		instance,
+		"",
 		pending,
 		1,
 		1,

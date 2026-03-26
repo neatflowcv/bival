@@ -11,8 +11,6 @@ const unknownObjectReason = "object kind is unknown"
 
 type EntryGroup struct {
 	name            string
-	hasPendingMap   bool
-	hasPendingLog   bool
 	plainEntries    []*PlainEntry
 	instanceEntries []*InstanceEntry
 	olhEntries      []*OLHEntry
@@ -21,8 +19,6 @@ type EntryGroup struct {
 func NewEntryGroup(name string) *EntryGroup {
 	return &EntryGroup{
 		name:            name,
-		hasPendingMap:   false,
-		hasPendingLog:   false,
 		plainEntries:    nil,
 		instanceEntries: nil,
 		olhEntries:      nil,
@@ -46,15 +42,33 @@ func (g *EntryGroup) OLHCount() int {
 }
 
 func (g *EntryGroup) HasPendingMap() bool {
-	return g.hasPendingMap
+	for _, entry := range g.plainEntries {
+		if entry.HasPendingMap() {
+			return true
+		}
+	}
+
+	for _, entry := range g.instanceEntries {
+		if entry.HasPendingMap() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (g *EntryGroup) HasPendingLog() bool {
-	return g.hasPendingLog
+	for _, entry := range g.olhEntries {
+		if entry.HasPendingLog() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (g *EntryGroup) HasPendingEntries() bool {
-	return g.hasPendingMap || g.hasPendingLog
+	return g.HasPendingMap() || g.HasPendingLog()
 }
 
 func (g *EntryGroup) ProblemReason() string {
@@ -76,9 +90,6 @@ func (g *EntryGroup) AddPlain(entry *PlainEntry) error {
 	}
 
 	g.plainEntries = append(g.plainEntries, entry)
-	if entry.HasPendingMap() {
-		g.hasPendingMap = true
-	}
 
 	return nil
 }
@@ -90,9 +101,6 @@ func (g *EntryGroup) AddInstance(entry *InstanceEntry) error {
 	}
 
 	g.instanceEntries = append(g.instanceEntries, entry)
-	if entry.HasPendingMap() {
-		g.hasPendingMap = true
-	}
 
 	return nil
 }
@@ -104,9 +112,6 @@ func (g *EntryGroup) AddOLH(entry *OLHEntry) error {
 	}
 
 	g.olhEntries = append(g.olhEntries, entry)
-	if entry.HasPendingLog() {
-		g.hasPendingLog = true
-	}
 
 	return nil
 }
