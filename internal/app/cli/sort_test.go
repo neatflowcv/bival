@@ -339,36 +339,6 @@ func olhRecordMap(name string, idx string) map[string]any {
 	}
 }
 
-func recordMapWithPendingMap(name string, recordType string, idx string) map[string]any {
-	record := recordMap(name, recordType, idx)
-
-	entry, ok := record["entry"].(map[string]any)
-	if !ok {
-		panic("record entry must be a map")
-	}
-
-	entry["pending_map"] = []any{
-		map[string]any{"op": "test"},
-	}
-
-	return record
-}
-
-func olhRecordMapWithPendingLog(name string, idx string) map[string]any {
-	record := olhRecordMap(name, idx)
-
-	entry, ok := record["entry"].(map[string]any)
-	if !ok {
-		panic("record entry must be a map")
-	}
-
-	entry["pending_log"] = []any{
-		map[string]any{"op": "test"},
-	}
-
-	return record
-}
-
 func pendingMapEntry(name string, instance string) bilist.Entry {
 	entry := bilist.Entry{
 		Name:     name,

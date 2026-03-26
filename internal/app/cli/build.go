@@ -86,7 +86,12 @@ func parseMTime(value string) (time.Time, error) {
 		return time.Time{}, nil
 	}
 
-	return time.Parse(time.RFC3339Nano, value)
+	parsed, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("parse RFC3339Nano: %w", err)
+	}
+
+	return parsed, nil
 }
 
 func newPendingMaps(record *bilist.Record) []*domain.PendingMap {

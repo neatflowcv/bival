@@ -10,24 +10,28 @@ var errEntryGroupNameMismatch = errors.New("entry name does not match group name
 const unknownObjectReason = "object kind is unknown"
 
 type EntryGroup struct {
-	name          string
-	plainCount    int
-	instanceCount int
-	olhCount      int
-	hasPendingMap bool
-	hasPendingLog bool
-	plainEntries  []*PlainEntry
+	name            string
+	plainCount      int
+	instanceCount   int
+	olhCount        int
+	hasPendingMap   bool
+	hasPendingLog   bool
+	plainEntries    []*PlainEntry
+	instanceEntries []*InstanceEntry
+	olhEntries      []*OLHEntry
 }
 
 func NewEntryGroup(name string) *EntryGroup {
 	return &EntryGroup{
-		name:          name,
-		plainCount:    0,
-		instanceCount: 0,
-		olhCount:      0,
-		hasPendingMap: false,
-		hasPendingLog: false,
-		plainEntries:  nil,
+		name:            name,
+		plainCount:      0,
+		instanceCount:   0,
+		olhCount:        0,
+		hasPendingMap:   false,
+		hasPendingLog:   false,
+		plainEntries:    nil,
+		instanceEntries: nil,
+		olhEntries:      nil,
 	}
 }
 
@@ -94,6 +98,8 @@ func (g *EntryGroup) AddInstance(entry *InstanceEntry) error {
 	}
 
 	g.instanceCount++
+
+	g.instanceEntries = append(g.instanceEntries, entry)
 	if entry.HasPendingMap() {
 		g.hasPendingMap = true
 	}
@@ -108,6 +114,8 @@ func (g *EntryGroup) AddOLH(entry *OLHEntry) error {
 	}
 
 	g.olhCount++
+
+	g.olhEntries = append(g.olhEntries, entry)
 	if entry.HasPendingLog() {
 		g.hasPendingLog = true
 	}
@@ -117,6 +125,14 @@ func (g *EntryGroup) AddOLH(entry *OLHEntry) error {
 
 func (g *EntryGroup) PlainEntries() []*PlainEntry {
 	return g.plainEntries
+}
+
+func (g *EntryGroup) InstanceEntries() []*InstanceEntry {
+	return g.instanceEntries
+}
+
+func (g *EntryGroup) OLHEntries() []*OLHEntry {
+	return g.olhEntries
 }
 
 func (g *EntryGroup) validateName(entryName string) error {

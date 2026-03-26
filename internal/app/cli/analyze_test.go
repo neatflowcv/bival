@@ -16,10 +16,10 @@ func TestAnalyzeFileSummarizesSortedInput(t *testing.T) {
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
 		recordMap("alpha", "plain", "alpha"),
-		recordMap("beta", "plain", "beta-head"),
-		recordMap("beta", "plain", "beta-v1"),
-		recordMap("beta", "instance", "beta-i1"),
-		olhRecordMap("beta", "beta-olh"),
+		versionedHeadRecordMap("beta"),
+		versionedPlainRecordMap("beta", "v1"),
+		versionedInstanceRecordMap("beta", "v1"),
+		versionedOLHRecordMap("beta", "v1"),
 	})
 
 	var buf bytes.Buffer
@@ -37,10 +37,10 @@ func TestAnalyzeFileAcceptsUnsortedInput(t *testing.T) {
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
 		recordMap("alpha", "plain", "alpha"),
-		recordMap("beta", "plain", "beta-head"),
-		recordMap("beta", "plain", "beta-v1"),
-		recordMap("beta", "instance", "beta-i1"),
-		olhRecordMap("beta", "beta-olh"),
+		versionedHeadRecordMap("beta"),
+		versionedPlainRecordMap("beta", "v1"),
+		versionedInstanceRecordMap("beta", "v1"),
+		versionedOLHRecordMap("beta", "v1"),
 		recordMap("alpha", "plain", "alpha"),
 	})
 
@@ -58,10 +58,10 @@ func TestAnalyzeFileReportsPendingMapGroupOnce(t *testing.T) {
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
-		recordMap("alpha", "plain", "alpha-head"),
-		recordMapWithPendingMap("alpha", "plain", "alpha-v1"),
-		recordMap("alpha", "instance", "alpha-i1"),
-		olhRecordMap("alpha", "alpha-olh"),
+		versionedHeadRecordMap("alpha"),
+		versionedPlainRecordMapWithPendingMap("alpha", "v1"),
+		versionedInstanceRecordMap("alpha", "v1"),
+		versionedOLHRecordMap("alpha", "v1"),
 	})
 
 	var buf bytes.Buffer
@@ -78,10 +78,10 @@ func TestAnalyzeFileReportsPendingLogGroupOnce(t *testing.T) {
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
-		recordMap("alpha", "plain", "alpha-head"),
-		recordMap("alpha", "plain", "alpha-v1"),
-		recordMap("alpha", "instance", "alpha-i1"),
-		olhRecordMapWithPendingLog("alpha", "alpha-olh"),
+		versionedHeadRecordMap("alpha"),
+		versionedPlainRecordMap("alpha", "v1"),
+		versionedInstanceRecordMap("alpha", "v1"),
+		versionedOLHRecordMapWithPendingLog("alpha", "v1"),
 	})
 
 	var buf bytes.Buffer
@@ -98,10 +98,10 @@ func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
-		recordMap("alpha", "plain", "alpha-head"),
-		recordMap("alpha", "plain", "alpha-v1"),
-		recordMap("alpha", "instance", "alpha-i1"),
-		recordMap("alpha", "instance", "alpha-i2"),
+		versionedHeadRecordMap("alpha"),
+		versionedPlainRecordMap("alpha", "v1"),
+		versionedInstanceRecordMap("alpha", "v1"),
+		versionedInstanceRecordMap("alpha", "v2"),
 	})
 
 	var buf bytes.Buffer
@@ -118,11 +118,11 @@ func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
-		recordMap("alpha", "plain", "alpha-head"),
-		recordMap("alpha", "plain", "alpha-v1"),
-		recordMap("alpha", "plain", "alpha-v2"),
-		recordMap("alpha", "instance", "alpha-i1"),
-		olhRecordMap("alpha", "alpha-olh"),
+		versionedHeadRecordMap("alpha"),
+		versionedPlainRecordMap("alpha", "v1"),
+		versionedPlainRecordMap("alpha", "v2"),
+		versionedInstanceRecordMap("alpha", "v1"),
+		versionedOLHRecordMap("alpha", "v1"),
 	})
 
 	var buf bytes.Buffer
@@ -140,15 +140,15 @@ func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
 		recordMap("alpha", "plain", "alpha"),
-		recordMap("beta", "plain", "beta-head"),
-		recordMap("beta", "plain", "beta-v1"),
-		recordMap("beta", "plain", "beta-v2"),
-		recordMap("beta", "instance", "beta-i1"),
-		olhRecordMap("beta", "beta-olh"),
-		recordMap("gamma", "plain", "gamma-head"),
-		recordMap("gamma", "plain", "gamma-v1"),
-		recordMap("gamma", "instance", "gamma-i1"),
-		olhRecordMap("gamma", "gamma-olh"),
+		versionedHeadRecordMap("beta"),
+		versionedPlainRecordMap("beta", "v1"),
+		versionedPlainRecordMap("beta", "v2"),
+		versionedInstanceRecordMap("beta", "v1"),
+		versionedOLHRecordMap("beta", "v1"),
+		versionedHeadRecordMap("gamma"),
+		versionedPlainRecordMap("gamma", "v1"),
+		versionedInstanceRecordMap("gamma", "v1"),
+		versionedOLHRecordMap("gamma", "v1"),
 	})
 
 	var buf bytes.Buffer
@@ -170,6 +170,7 @@ func TestAnalyzeFileHandlesZeroFloatMTime(t *testing.T) {
 
 	meta, ok := entry["meta"].(map[string]any)
 	require.True(t, ok)
+
 	meta["mtime"] = "0.000000"
 
 	writeRecords(t, inputPath, []map[string]any{record})
@@ -181,4 +182,123 @@ func TestAnalyzeFileHandlesZeroFloatMTime(t *testing.T) {
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
 	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
+}
+
+func versionedHeadRecordMap(name string) map[string]any {
+	meta := map[string]any{
+		"category":           0,
+		"size":               0,
+		"mtime":              "0.000000",
+		"etag":               "",
+		"storage_class":      "",
+		"owner":              "",
+		"owner_display_name": "",
+		"content_type":       "",
+		"accounted_size":     0,
+		"user_data":          "",
+		"appendable":         false,
+	}
+
+	return map[string]any{
+		"type": "plain",
+		"idx":  name,
+		"entry": map[string]any{
+			"name":            name,
+			"instance":        "",
+			"ver":             map[string]any{"pool": -1, "epoch": 0},
+			"locator":         "",
+			"exists":          false,
+			"meta":            meta,
+			"tag":             "",
+			"flags":           8,
+			"pending_map":     []any{},
+			"versioned_epoch": 0,
+		},
+	}
+}
+
+func versionedPlainRecordMap(name string, instance string) map[string]any {
+	meta := map[string]any{
+		"category":           1,
+		"size":               4,
+		"mtime":              "2026-03-06T03:34:11.918188Z",
+		"etag":               "etag",
+		"storage_class":      "",
+		"owner":              "test",
+		"owner_display_name": "test",
+		"content_type":       "text/plain",
+		"accounted_size":     4,
+		"user_data":          "",
+		"appendable":         false,
+	}
+
+	return map[string]any{
+		"type": "plain",
+		"idx":  name + "\u0000v913\u0000i" + instance,
+		"entry": map[string]any{
+			"name":            name,
+			"instance":        instance,
+			"ver":             map[string]any{"pool": 186, "epoch": 1147},
+			"locator":         "",
+			"exists":          true,
+			"meta":            meta,
+			"tag":             "tag",
+			"flags":           1,
+			"pending_map":     []any{},
+			"versioned_epoch": 2,
+		},
+	}
+}
+
+func versionedInstanceRecordMap(name string, instance string) map[string]any {
+	record := versionedPlainRecordMap(name, instance)
+	record["type"] = "instance"
+	record["idx"] = "\u00801000_" + name + "\u0000i" + instance
+
+	return record
+}
+
+func versionedOLHRecordMap(name string, instance string) map[string]any {
+	return map[string]any{
+		"type": "olh",
+		"idx":  "\u00801001_" + name,
+		"entry": map[string]any{
+			"key": map[string]any{
+				"name":     name,
+				"instance": instance,
+			},
+			"delete_marker":   false,
+			"epoch":           2,
+			"pending_log":     []any{},
+			"tag":             "",
+			"exists":          true,
+			"pending_removal": false,
+		},
+	}
+}
+
+func versionedPlainRecordMapWithPendingMap(name string, instance string) map[string]any {
+	record := versionedPlainRecordMap(name, instance)
+
+	entry, ok := record["entry"].(map[string]any)
+	if !ok {
+		panic("record entry must be a map")
+	}
+
+	entry["pending_map"] = []any{map[string]any{"op": "test"}}
+
+	return record
+}
+
+func versionedOLHRecordMapWithPendingLog(name string, instance string) map[string]any {
+	record := versionedOLHRecordMap(name, instance)
+
+	entry, ok := record["entry"].(map[string]any)
+	if !ok {
+		panic("record entry must be a map")
+	}
+
+	entry["pending_log"] = []any{map[string]any{"op": "test"}}
+
+	return record
 }

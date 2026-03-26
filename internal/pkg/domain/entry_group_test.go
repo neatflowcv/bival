@@ -56,36 +56,227 @@ func TestEntryGroupClassifierReturnsUnknownObjectWhenNoRuleMatches(t *testing.T)
 	classifier := domain.NewEntryGroupClassifier()
 
 	require.NoError(t, group.AddPlain(newUnversionedPlainEntry()))
-	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v1", false)))
-	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
 }
 
-func TestEntryGroupClassifierReturnsUnknownObjectWhenVersionedRuleDoesNotMatch(t *testing.T) {
+func TestEntryGroupClassifierReturnsVersionedObjectWithSingleVersion(t *testing.T) {
 	t.Parallel()
 
 	group := domain.NewEntryGroup("alpha")
 	classifier := domain.NewEntryGroupClassifier()
 
-	require.NoError(t, group.AddPlain(newUnversionedPlainEntry()))
-	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v1", false)))
-	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v2", false)))
-	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
-	require.NoError(t, group.AddOLH(newOLHEntry("alpha", false)))
-	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
-}
+	version := defaultVersionedFixture("v1")
+	instanceVersion := version
+	instanceVersion.tag = "instance-tag"
 
-func TestEntryGroupClassifierReturnsVersionedObject(t *testing.T) {
-	t.Parallel()
-
-	group := domain.NewEntryGroup("alpha")
-	classifier := domain.NewEntryGroupClassifier()
-
-	require.NoError(t, group.AddPlain(newUnversionedPlainEntry()))
-	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v1", false)))
-	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
-	require.NoError(t, group.AddOLH(newOLHEntry("alpha", false)))
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(instanceVersion)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
 	require.Equal(t, domain.VersionedObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierReturnsVersionedObjectWithDeleteMarkerHead(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	deleteMarker := defaultVersionedFixture("delete-v1")
+	deleteMarker.exists = false
+	deleteMarker.pool = -1
+	deleteMarker.epoch = 0
+	deleteMarker.eTag = ""
+	deleteMarker.tag = "delete-marker"
+	deleteMarker.flags = 7
+	deleteMarker.versionedEpoch = 3
+	deleteMarker.category = 0
+	deleteMarker.size = 0
+	deleteMarker.accountedSize = 0
+	deleteMarker.contentType = ""
+	deleteMarker.mtime = sampleDeleteMarkerMTime()
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(deleteMarker)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(deleteMarker)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "delete-v1", false)))
+	require.Equal(t, domain.VersionedObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierReturnsVersionedObjectWithMultipleVersions(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	versionOne := defaultVersionedFixture("v1")
+	versionOne.pool = 186
+	versionOne.epoch = 1121
+	versionOne.tag = "tag-v1"
+	versionOne.flags = 3
+	versionOne.versionedEpoch = 3
+	versionOne.mtime = sampleEarlierMTime()
+
+	versionTwo := defaultVersionedFixture("v2")
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.VersionedObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierReturnsVersionedObjectWithEmptyInstanceVersion(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	version := defaultVersionedFixture("")
+	version.pool = 34
+	version.epoch = 2219298
+	version.versionedEpoch = 3
+	version.flags = 3
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(version)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "", false)))
+	require.Equal(t, domain.VersionedObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainIsMissing(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainIsDuplicated(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainShapeIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	invalidHead := newCustomVersionedPlainEntry(versionedEntryFixture{
+		idx:            "alpha",
+		name:           "alpha",
+		instance:       "",
+		pool:           -1,
+		epoch:          0,
+		exists:         false,
+		mtime:          time.Time{},
+		eTag:           "",
+		tag:            "",
+		flags:          0,
+		versionedEpoch: 0,
+		category:       0,
+		size:           0,
+		accountedSize:  0,
+		contentType:    "",
+		owner:          "",
+		ownerDisplay:   "",
+		pendingMap:     false,
+	}, false)
+
+	require.NoError(t, group.AddPlain(invalidHead))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainInstanceNonTagPayloadsDiffer(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	fixture := defaultVersionedFixture("v1")
+	mismatchedInstance := fixture
+	mismatchedInstance.flags = fixture.flags + 1
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(fixture)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(mismatchedInstance)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainHasNoMatchingInstance(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v2"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenInstanceHasNoMatchingPlain(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v2"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenOLHReferencesMissingInstance(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "missing", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenOLHHasPendingLog(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", true)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenIdxDiffersFromName(t *testing.T) {
@@ -358,24 +549,168 @@ func newUnversionedPlainEntry() *domain.PlainEntry {
 }
 
 func newInstanceEntry(name string, pending bool) *domain.InstanceEntry {
-	return domain.NewInstanceEntry(newDirEntry(name, "v1", pending))
+	fixture := defaultVersionedFixture("v1")
+	fixture.name = name
+
+	return newVersionedInstanceEntry(fixtureWithPendingMap(fixture, pending))
 }
 
-func newDirEntry(name string, instance string, pending bool) *domain.DirEntry {
+type versionedEntryFixture struct {
+	idx            string
+	name           string
+	instance       string
+	pool           int
+	epoch          int
+	exists         bool
+	mtime          time.Time
+	eTag           string
+	tag            string
+	flags          int
+	versionedEpoch int
+	category       int
+	size           int64
+	accountedSize  int64
+	contentType    string
+	owner          string
+	ownerDisplay   string
+	pendingMap     bool
+}
+
+func defaultVersionedFixture(instance string) versionedEntryFixture {
+	return versionedEntryFixture{
+		idx:            "alpha\x00v913\x00i" + instance,
+		name:           "alpha",
+		instance:       instance,
+		pool:           186,
+		epoch:          1147,
+		exists:         true,
+		mtime:          sampleMTime(),
+		eTag:           "etag",
+		tag:            "tag",
+		flags:          1,
+		versionedEpoch: 2,
+		category:       1,
+		size:           4,
+		accountedSize:  4,
+		contentType:    "text/plain",
+		owner:          "test",
+		ownerDisplay:   "test",
+		pendingMap:     false,
+	}
+}
+
+func fixtureWithPendingMap(fixture versionedEntryFixture, pending bool) versionedEntryFixture {
+	fixture.pendingMap = pending
+
+	return fixture
+}
+
+func newVersionedHeadPlainEntry() *domain.PlainEntry {
+	return newCustomVersionedPlainEntry(versionedEntryFixture{
+		idx:            "alpha",
+		name:           "alpha",
+		instance:       "",
+		pool:           -1,
+		epoch:          0,
+		exists:         false,
+		mtime:          time.Time{},
+		eTag:           "",
+		tag:            "",
+		flags:          8,
+		versionedEpoch: 0,
+		category:       0,
+		size:           0,
+		accountedSize:  0,
+		contentType:    "",
+		owner:          "",
+		ownerDisplay:   "",
+		pendingMap:     false,
+	}, false)
+}
+
+func newVersionedPlainEntry(fixture versionedEntryFixture) *domain.PlainEntry {
+	return newCustomVersionedPlainEntry(fixture, true)
+}
+
+func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedIndex bool) *domain.PlainEntry {
 	var pendingMaps []*domain.PendingMap
-	if pending {
+	if fixture.pendingMap {
 		pendingMaps = []*domain.PendingMap{nil}
 	}
 
-	return domain.NewDirEntry(
-		"plain",
-		[]byte(name),
-		domain.NewDirPayload(
-			domain.NewKey(name, instance),
-			nil,
-			nil,
-			nil,
-			pendingMaps,
+	idx := fixture.idx
+	if buildVersionedIndex {
+		idx = versionedPlainIndex(fixture.instance)
+	}
+
+	return domain.NewPlainEntry(
+		domain.NewDirEntry(
+			"plain",
+			[]byte(idx),
+			domain.NewDirPayload(
+				domain.NewKey(fixture.name, fixture.instance),
+				domain.NewDirVersionInfo(
+					domain.NewVersion(fixture.pool, fixture.epoch),
+					fixture.versionedEpoch,
+				),
+				domain.NewDirState(
+					"",
+					fixture.exists,
+					fixture.tag,
+					fixture.flags,
+				),
+				domain.NewMeta(
+					domain.NewObjectSpec(
+						fixture.category,
+						fixture.size,
+						fixture.accountedSize,
+						false,
+					),
+					domain.NewAuditInfo(fixture.mtime, fixture.eTag),
+					domain.NewContentInfo("", fixture.contentType),
+					domain.NewOwner(fixture.owner, fixture.ownerDisplay),
+				),
+				pendingMaps,
+			),
+		),
+	)
+}
+
+func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEntry {
+	var pendingMaps []*domain.PendingMap
+	if fixture.pendingMap {
+		pendingMaps = []*domain.PendingMap{nil}
+	}
+
+	return domain.NewInstanceEntry(
+		domain.NewDirEntry(
+			"instance",
+			[]byte(versionedInstanceIndex(fixture.instance)),
+			domain.NewDirPayload(
+				domain.NewKey(fixture.name, fixture.instance),
+				domain.NewDirVersionInfo(
+					domain.NewVersion(fixture.pool, fixture.epoch),
+					fixture.versionedEpoch,
+				),
+				domain.NewDirState(
+					"",
+					fixture.exists,
+					fixture.tag,
+					fixture.flags,
+				),
+				domain.NewMeta(
+					domain.NewObjectSpec(
+						fixture.category,
+						fixture.size,
+						fixture.accountedSize,
+						false,
+					),
+					domain.NewAuditInfo(fixture.mtime, fixture.eTag),
+					domain.NewContentInfo("", fixture.contentType),
+					domain.NewOwner(fixture.owner, fixture.ownerDisplay),
+				),
+				pendingMaps,
+			),
 		),
 	)
 }
@@ -430,7 +765,19 @@ func sampleMTime() time.Time {
 	return time.Date(2026, time.March, 6, 3, 34, 11, 918188000, time.UTC)
 }
 
+func sampleEarlierMTime() time.Time {
+	return time.Date(2026, time.March, 6, 2, 10, 28, 562296000, time.UTC)
+}
+
+func sampleDeleteMarkerMTime() time.Time {
+	return time.Date(2026, time.March, 6, 4, 11, 7, 657765000, time.UTC)
+}
+
 func newOLHEntry(name string, pending bool) *domain.OLHEntry {
+	return newVersionedOLHEntry(name, "v1", pending)
+}
+
+func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OLHEntry {
 	var pendingLogs []*domain.PendingLog
 	if pending {
 		pendingLogs = []*domain.PendingLog{nil}
@@ -440,11 +787,19 @@ func newOLHEntry(name string, pending bool) *domain.OLHEntry {
 		"olh",
 		[]byte(name),
 		domain.NewOLHPayload(
-			domain.NewKey(name, "v1"),
+			domain.NewKey(name, instance),
 			nil,
 			0,
 			pendingLogs,
 			"",
 		),
 	)
+}
+
+func versionedPlainIndex(instance string) string {
+	return "alpha\x00v913\x00i" + instance
+}
+
+func versionedInstanceIndex(instance string) string {
+	return "\x801000_alpha\x00i" + instance
 }
