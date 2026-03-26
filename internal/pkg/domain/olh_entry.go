@@ -14,6 +14,10 @@ func NewOLHEntry(kind string, index []byte, payload *OLHPayload) *OLHEntry {
 	}
 }
 
+func (e *OLHEntry) Name() string {
+	return e.payload.key.name
+}
+
 func (e *OLHEntry) HasPendingLog() bool {
 	return len(e.payload.pendingLogs) > 0
 }

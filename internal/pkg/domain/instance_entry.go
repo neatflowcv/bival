@@ -10,6 +10,10 @@ func NewInstanceEntry(entry *DirEntry) *InstanceEntry {
 	}
 }
 
+func (e *InstanceEntry) Name() string {
+	return e.entry.payload.key.name
+}
+
 func (e *InstanceEntry) HasPendingMap() bool {
 	return e.entry.hasPendingMap()
 }

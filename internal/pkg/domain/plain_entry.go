@@ -10,6 +10,10 @@ func NewPlainEntry(entry *DirEntry) *PlainEntry {
 	}
 }
 
+func (e *PlainEntry) Name() string {
+	return e.entry.payload.key.name
+}
+
 func (e *PlainEntry) HasPendingMap() bool {
 	return e.entry.hasPendingMap()
 }
