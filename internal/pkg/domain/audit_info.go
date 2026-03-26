@@ -1,11 +1,13 @@
 package domain
 
+import "time"
+
 type AuditInfo struct {
-	mTime string
+	mTime time.Time
 	eTag  string
 }
 
-func NewAuditInfo(mTime string, eTag string) *AuditInfo {
+func NewAuditInfo(mTime time.Time, eTag string) *AuditInfo {
 	return &AuditInfo{
 		mTime: mTime,
 		eTag:  eTag,

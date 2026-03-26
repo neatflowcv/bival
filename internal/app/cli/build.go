@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
@@ -13,9 +14,19 @@ var errUnsupportedRecordType = errors.New("unsupported record type")
 func buildEntry(record *bilist.Record) (any, error) {
 	switch record.Type {
 	case "instance":
-		return domain.NewInstanceEntry(newDirEntry(record)), nil
+		entry, err := newDirEntry(record)
+		if err != nil {
+			return nil, err
+		}
+
+		return domain.NewInstanceEntry(entry), nil
 	case "plain":
-		return domain.NewPlainEntry(newDirEntry(record)), nil
+		entry, err := newDirEntry(record)
+		if err != nil {
+			return nil, err
+		}
+
+		return domain.NewPlainEntry(entry), nil
 	case "olh":
 		return domain.NewOLHEntry(
 			record.Type,
@@ -33,7 +44,12 @@ func buildEntry(record *bilist.Record) (any, error) {
 	}
 }
 
-func newDirEntry(record *bilist.Record) *domain.DirEntry {
+func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
+	mTime, err := time.Parse(time.RFC3339Nano, record.Entry.Meta.MTime)
+	if err != nil {
+		return nil, fmt.Errorf("parse mtime %q: %w", record.Entry.Meta.MTime, err)
+	}
+
 	return domain.NewDirEntry(
 		record.Type,
 		[]byte(record.Idx),
@@ -56,13 +72,13 @@ func newDirEntry(record *bilist.Record) *domain.DirEntry {
 					record.Entry.Meta.AccountedSize,
 					record.Entry.Meta.Appendable,
 				),
-				domain.NewAuditInfo(record.Entry.Meta.MTime, record.Entry.Meta.ETag),
+				domain.NewAuditInfo(mTime, record.Entry.Meta.ETag),
 				domain.NewContentInfo(record.Entry.Meta.StorageClass, record.Entry.Meta.ContentType),
 				domain.NewOwner(record.Entry.Meta.Owner, record.Entry.Meta.OwnerDisplayName),
 			),
 			newPendingMaps(record),
 		),
-	)
+	), nil
 }
 
 func newPendingMaps(record *bilist.Record) []*domain.PendingMap {

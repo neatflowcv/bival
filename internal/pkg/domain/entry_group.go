@@ -16,6 +16,7 @@ type EntryGroup struct {
 	olhCount      int
 	hasPendingMap bool
 	hasPendingLog bool
+	plainEntries  []*PlainEntry
 }
 
 func NewEntryGroup(name string) *EntryGroup {
@@ -26,6 +27,7 @@ func NewEntryGroup(name string) *EntryGroup {
 		olhCount:      0,
 		hasPendingMap: false,
 		hasPendingLog: false,
+		plainEntries:  nil,
 	}
 }
 
@@ -76,6 +78,8 @@ func (g *EntryGroup) AddPlain(entry *PlainEntry) error {
 	}
 
 	g.plainCount++
+
+	g.plainEntries = append(g.plainEntries, entry)
 	if entry.HasPendingMap() {
 		g.hasPendingMap = true
 	}
@@ -109,6 +113,10 @@ func (g *EntryGroup) AddOLH(entry *OLHEntry) error {
 	}
 
 	return nil
+}
+
+func (g *EntryGroup) PlainEntries() []*PlainEntry {
+	return g.plainEntries
 }
 
 func (g *EntryGroup) validateName(entryName string) error {
