@@ -9,3 +9,7 @@ func NewInstanceEntry(entry *DirEntry) *InstanceEntry {
 		entry: entry,
 	}
 }
+
+func (e *InstanceEntry) HasPendingMap() bool {
+	return e.entry.hasPendingMap()
+}

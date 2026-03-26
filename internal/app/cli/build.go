@@ -24,7 +24,7 @@ func buildEntry(record *bilist.Record) (any, error) {
 				domain.NewKey(record.Entry.Key.Name, record.Entry.Key.Instance),
 				domain.NewOLHState(record.Entry.DeleteMarker, record.Entry.PendingRemoval, record.Entry.Exists),
 				record.Entry.Epoch,
-				nil,
+				newPendingLogs(record),
 				record.Entry.Tag,
 			),
 		), nil
@@ -60,7 +60,23 @@ func newDirEntry(record *bilist.Record) *domain.DirEntry {
 				domain.NewContentInfo(record.Entry.Meta.StorageClass, record.Entry.Meta.ContentType),
 				domain.NewOwner(record.Entry.Meta.Owner, record.Entry.Meta.OwnerDisplayName),
 			),
-			nil,
+			newPendingMaps(record),
 		),
 	)
+}
+
+func newPendingMaps(record *bilist.Record) []*domain.PendingMap {
+	if len(record.Entry.PendingMap) == 0 {
+		return nil
+	}
+
+	return make([]*domain.PendingMap, len(record.Entry.PendingMap))
+}
+
+func newPendingLogs(record *bilist.Record) []*domain.PendingLog {
+	if len(record.Entry.PendingLog) == 0 {
+		return nil
+	}
+
+	return make([]*domain.PendingLog, len(record.Entry.PendingLog))
 }

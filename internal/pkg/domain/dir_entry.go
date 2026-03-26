@@ -13,3 +13,7 @@ func NewDirEntry(kind string, index []byte, payload *DirPayload) *DirEntry {
 		payload: payload,
 	}
 }
+
+func (e *DirEntry) hasPendingMap() bool {
+	return len(e.payload.pendingMaps) > 0
+}

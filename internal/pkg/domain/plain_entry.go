@@ -9,3 +9,7 @@ func NewPlainEntry(entry *DirEntry) *PlainEntry {
 		entry: entry,
 	}
 }
+
+func (e *PlainEntry) HasPendingMap() bool {
+	return e.entry.hasPendingMap()
+}
