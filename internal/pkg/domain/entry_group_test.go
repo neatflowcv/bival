@@ -38,6 +38,28 @@ func TestEntryGroupAddOLHTracksPendingLog(t *testing.T) {
 	require.True(t, group.HasPendingEntries())
 }
 
+func TestEntryGroupCountsMatchStoredEntries(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+
+	require.Zero(t, group.PlainCount())
+	require.Zero(t, group.InstanceCount())
+	require.Zero(t, group.OLHCount())
+
+	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "", false)))
+	require.Equal(t, len(group.PlainEntries()), group.PlainCount())
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.Equal(t, len(group.PlainEntries()), group.PlainCount())
+
+	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
+	require.Equal(t, len(group.InstanceEntries()), group.InstanceCount())
+
+	require.NoError(t, group.AddOLH(newOLHEntry("alpha", false)))
+	require.Equal(t, len(group.OLHEntries()), group.OLHCount())
+}
+
 func TestEntryGroupClassifierReturnsUnversionedObject(t *testing.T) {
 	t.Parallel()
 
