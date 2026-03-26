@@ -204,6 +204,49 @@ func TestBuildEntryRejectsInvalidMTime(t *testing.T) {
 	require.ErrorContains(t, err, "parse mtime")
 }
 
+func TestBuildEntryAcceptsZeroFloatMTime(t *testing.T) {
+	t.Parallel()
+
+	entry, err := buildEntry(&bilist.Record{
+		Type: "plain",
+		Idx:  "alpha",
+		Entry: bilist.Entry{
+			Name:           "alpha",
+			Instance:       "",
+			Ver:            bilist.Version{Pool: 1, Epoch: 1},
+			Locator:        "",
+			Exists:         true,
+			Tag:            "tag",
+			Flags:          0,
+			PendingMap:     []json.RawMessage{},
+			VersionedEpoch: 0,
+			Key:            bilist.Key{Name: "", Instance: ""},
+			DeleteMarker:   false,
+			Epoch:          0,
+			PendingLog:     nil,
+			PendingRemoval: false,
+			Meta: bilist.Meta{
+				Category:         0,
+				Size:             0,
+				MTime:            "0.000000",
+				ETag:             "etag",
+				StorageClass:     "",
+				Owner:            "",
+				OwnerDisplayName: "",
+				ContentType:      "",
+				AccountedSize:    0,
+				UserData:         "",
+				Appendable:       false,
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	plainTyped, isPlain := entry.(*domain.PlainEntry)
+	require.True(t, isPlain)
+	require.True(t, plainTyped.MTime().IsZero())
+}
+
 func TestAnalyzeFileRejectsUnsupportedType(t *testing.T) {
 	t.Parallel()
 

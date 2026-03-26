@@ -45,7 +45,7 @@ func buildEntry(record *bilist.Record) (any, error) {
 }
 
 func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
-	mTime, err := time.Parse(time.RFC3339Nano, record.Entry.Meta.MTime)
+	mTime, err := parseMTime(record.Entry.Meta.MTime)
 	if err != nil {
 		return nil, fmt.Errorf("parse mtime %q: %w", record.Entry.Meta.MTime, err)
 	}
@@ -79,6 +79,14 @@ func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
 			newPendingMaps(record),
 		),
 	), nil
+}
+
+func parseMTime(value string) (time.Time, error) {
+	if value == "" || value == "0.000000" {
+		return time.Time{}, nil
+	}
+
+	return time.Parse(time.RFC3339Nano, value)
 }
 
 func newPendingMaps(record *bilist.Record) []*domain.PendingMap {

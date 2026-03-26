@@ -159,3 +159,26 @@ func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "problem name=\"beta\" reason=\"object kind is unknown\"\n", buf.String())
 }
+
+func TestAnalyzeFileHandlesZeroFloatMTime(t *testing.T) {
+	t.Parallel()
+
+	inputPath := filepath.Join(t.TempDir(), "input.json")
+	record := recordMap("alpha", "plain", "alpha")
+	entry, ok := record["entry"].(map[string]any)
+	require.True(t, ok)
+
+	meta, ok := entry["meta"].(map[string]any)
+	require.True(t, ok)
+	meta["mtime"] = "0.000000"
+
+	writeRecords(t, inputPath, []map[string]any{record})
+
+	var buf bytes.Buffer
+
+	logger := log.New(&buf, "", 0)
+
+	err := analyzeFile(inputPath, logger)
+	require.NoError(t, err)
+	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
+}
