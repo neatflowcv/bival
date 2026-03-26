@@ -82,9 +82,8 @@ func hasHeadIdentity(entry *PlainEntry) bool {
 }
 
 func hasHeadVersion(payload *DirPayload) bool {
-	return payload.versionInfo.version.pool == -1 &&
-		payload.versionInfo.version.epoch == 0 &&
-		payload.versionInfo.versionedEpoch == 0
+	return payload.versionInfo.Version().IsMissing() &&
+		payload.versionInfo.VersionedEpoch() == 0
 }
 
 func hasHeadState(payload *DirPayload) bool {
@@ -241,9 +240,9 @@ func entryKeyFromPayload(payload *DirPayload, ok bool) (versionedEntryKey, bool)
 	return versionedEntryKey{
 		name:     payload.key.name,
 		instance: payload.key.instance,
-		pool:     payload.versionInfo.version.pool,
-		epoch:    payload.versionInfo.version.epoch,
-		vEpoch:   payload.versionInfo.versionedEpoch,
+		pool:     payload.versionInfo.Version().Pool(),
+		epoch:    payload.versionInfo.Version().Epoch(),
+		vEpoch:   payload.versionInfo.VersionedEpoch(),
 	}, true
 }
 

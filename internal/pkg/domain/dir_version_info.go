@@ -11,3 +11,11 @@ func NewDirVersionInfo(version *Version, versionedEpoch int) *DirVersionInfo {
 		versionedEpoch: versionedEpoch,
 	}
 }
+
+func (i *DirVersionInfo) Version() *Version {
+	return i.version
+}
+
+func (i *DirVersionInfo) VersionedEpoch() int {
+	return i.versionedEpoch
+}
