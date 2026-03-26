@@ -110,7 +110,7 @@ func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"versioning object must have exactly one olh\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
@@ -131,7 +131,7 @@ func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"versioning object must satisfy instance+1==plain\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
@@ -157,5 +157,5 @@ func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"beta\" reason=\"versioning object must satisfy instance+1==plain\"\n", buf.String())
+	require.Equal(t, "problem name=\"beta\" reason=\"object kind is unknown\"\n", buf.String())
 }

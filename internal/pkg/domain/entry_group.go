@@ -7,6 +7,8 @@ import (
 
 var errEntryGroupNameMismatch = errors.New("entry name does not match group name")
 
+const unknownObjectReason = "object kind is unknown"
+
 type EntryGroup struct {
 	name          string
 	plainCount    int
@@ -29,6 +31,42 @@ func NewEntryGroup(name string) *EntryGroup {
 
 func (g *EntryGroup) Name() string {
 	return g.name
+}
+
+func (g *EntryGroup) PlainCount() int {
+	return g.plainCount
+}
+
+func (g *EntryGroup) InstanceCount() int {
+	return g.instanceCount
+}
+
+func (g *EntryGroup) OLHCount() int {
+	return g.olhCount
+}
+
+func (g *EntryGroup) HasPendingMap() bool {
+	return g.hasPendingMap
+}
+
+func (g *EntryGroup) HasPendingLog() bool {
+	return g.hasPendingLog
+}
+
+func (g *EntryGroup) HasPendingEntries() bool {
+	return g.hasPendingMap || g.hasPendingLog
+}
+
+func (g *EntryGroup) ProblemReason() string {
+	if g.HasPendingEntries() {
+		return "pending entry exists"
+	}
+
+	if NewEntryGroupClassifier().Classify(g) == UnknownObject {
+		return unknownObjectReason
+	}
+
+	return ""
 }
 
 func (g *EntryGroup) AddPlain(entry *PlainEntry) error {
@@ -71,26 +109,6 @@ func (g *EntryGroup) AddOLH(entry *OLHEntry) error {
 	}
 
 	return nil
-}
-
-func (g *EntryGroup) ProblemReason() string {
-	if g.hasPendingMap || g.hasPendingLog {
-		return "pending entry exists"
-	}
-
-	if g.plainCount == 1 {
-		return ""
-	}
-
-	if g.olhCount != 1 {
-		return "versioning object must have exactly one olh"
-	}
-
-	if g.instanceCount+1 != g.plainCount {
-		return "versioning object must satisfy instance+1==plain"
-	}
-
-	return ""
 }
 
 func (g *EntryGroup) validateName(entryName string) error {

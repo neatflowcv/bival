@@ -14,7 +14,7 @@ func TestEntryGroupAddPlainTracksPendingMap(t *testing.T) {
 
 	err := group.AddPlain(newPlainEntry("alpha", "", true))
 	require.NoError(t, err)
-	require.Equal(t, "pending entry exists", group.ProblemReason())
+	require.True(t, group.HasPendingEntries())
 }
 
 func TestEntryGroupAddInstanceTracksPendingMap(t *testing.T) {
@@ -24,7 +24,7 @@ func TestEntryGroupAddInstanceTracksPendingMap(t *testing.T) {
 
 	err := group.AddInstance(newInstanceEntry("alpha", true))
 	require.NoError(t, err)
-	require.Equal(t, "pending entry exists", group.ProblemReason())
+	require.True(t, group.HasPendingEntries())
 }
 
 func TestEntryGroupAddOLHTracksPendingLog(t *testing.T) {
@@ -34,53 +34,57 @@ func TestEntryGroupAddOLHTracksPendingLog(t *testing.T) {
 
 	err := group.AddOLH(newOLHEntry("alpha", true))
 	require.NoError(t, err)
-	require.Equal(t, "pending entry exists", group.ProblemReason())
+	require.True(t, group.HasPendingEntries())
 }
 
-func TestEntryGroupSinglePlainHasNoProblem(t *testing.T) {
+func TestEntryGroupClassifierReturnsUnversionedObject(t *testing.T) {
 	t.Parallel()
 
 	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
 
 	err := group.AddPlain(newPlainEntry("alpha", "", false))
 	require.NoError(t, err)
-	require.Empty(t, group.ProblemReason())
+	require.Equal(t, domain.UnversionedObject, classifier.Classify(group))
 }
 
-func TestEntryGroupReportsInvalidOLHCount(t *testing.T) {
+func TestEntryGroupClassifierReturnsUnknownObjectWhenNoRuleMatches(t *testing.T) {
 	t.Parallel()
 
 	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
 
 	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "", false)))
 	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v1", false)))
 	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
-	require.Equal(t, "versioning object must have exactly one olh", group.ProblemReason())
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
 }
 
-func TestEntryGroupReportsInvalidInstanceCount(t *testing.T) {
+func TestEntryGroupClassifierReturnsUnknownObjectWhenVersionedRuleDoesNotMatch(t *testing.T) {
 	t.Parallel()
 
 	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
 
 	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "", false)))
 	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v1", false)))
 	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v2", false)))
 	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
 	require.NoError(t, group.AddOLH(newOLHEntry("alpha", false)))
-	require.Equal(t, "versioning object must satisfy instance+1==plain", group.ProblemReason())
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
 }
 
-func TestEntryGroupAcceptsValidVersionedObject(t *testing.T) {
+func TestEntryGroupClassifierReturnsVersionedObject(t *testing.T) {
 	t.Parallel()
 
 	group := domain.NewEntryGroup("alpha")
+	classifier := domain.NewEntryGroupClassifier()
 
 	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "", false)))
 	require.NoError(t, group.AddPlain(newPlainEntry("alpha", "v1", false)))
 	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
 	require.NoError(t, group.AddOLH(newOLHEntry("alpha", false)))
-	require.Empty(t, group.ProblemReason())
+	require.Equal(t, domain.VersionedObject, classifier.Classify(group))
 }
 
 func TestEntryGroupRejectsMismatchedPlainName(t *testing.T) {
