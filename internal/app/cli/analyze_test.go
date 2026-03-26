@@ -15,7 +15,7 @@ func TestAnalyzeFileSummarizesSortedInput(t *testing.T) {
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
-		recordMap("alpha", "plain", "alpha-1"),
+		recordMap("alpha", "plain", "alpha"),
 		recordMap("beta", "plain", "beta-head"),
 		recordMap("beta", "plain", "beta-v1"),
 		recordMap("beta", "instance", "beta-i1"),
@@ -36,12 +36,12 @@ func TestAnalyzeFileAcceptsUnsortedInput(t *testing.T) {
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
-		recordMap("alpha", "plain", "alpha-1"),
+		recordMap("alpha", "plain", "alpha"),
 		recordMap("beta", "plain", "beta-head"),
 		recordMap("beta", "plain", "beta-v1"),
 		recordMap("beta", "instance", "beta-i1"),
 		olhRecordMap("beta", "beta-olh"),
-		recordMap("alpha", "plain", "alpha-2"),
+		recordMap("alpha", "plain", "alpha"),
 	})
 
 	var buf bytes.Buffer
@@ -139,7 +139,7 @@ func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 
 	inputPath := filepath.Join(t.TempDir(), "input.json")
 	writeRecords(t, inputPath, []map[string]any{
-		recordMap("alpha", "plain", "alpha-1"),
+		recordMap("alpha", "plain", "alpha"),
 		recordMap("beta", "plain", "beta-head"),
 		recordMap("beta", "plain", "beta-v1"),
 		recordMap("beta", "plain", "beta-v2"),

@@ -165,6 +165,45 @@ func TestBuildEntryPreservesPendingPresence(t *testing.T) {
 	require.True(t, olhTyped.HasPendingLog())
 }
 
+func TestBuildEntryRejectsInvalidMTime(t *testing.T) {
+	t.Parallel()
+
+	_, err := buildEntry(&bilist.Record{
+		Type: "plain",
+		Idx:  "alpha",
+		Entry: bilist.Entry{
+			Name:           "alpha",
+			Instance:       "",
+			Ver:            bilist.Version{Pool: 1, Epoch: 1},
+			Locator:        "",
+			Exists:         true,
+			Tag:            "tag",
+			Flags:          0,
+			PendingMap:     []json.RawMessage{},
+			VersionedEpoch: 0,
+			Key:            bilist.Key{Name: "", Instance: ""},
+			DeleteMarker:   false,
+			Epoch:          0,
+			PendingLog:     nil,
+			PendingRemoval: false,
+			Meta: bilist.Meta{
+				Category:         0,
+				Size:             0,
+				MTime:            "invalid-mtime",
+				ETag:             "etag",
+				StorageClass:     "",
+				Owner:            "",
+				OwnerDisplayName: "",
+				ContentType:      "",
+				AccountedSize:    0,
+				UserData:         "",
+				Appendable:       false,
+			},
+		},
+	})
+	require.ErrorContains(t, err, "parse mtime")
+}
+
 func TestAnalyzeFileRejectsUnsupportedType(t *testing.T) {
 	t.Parallel()
 
@@ -229,8 +268,8 @@ func recordMap(name string, recordType string, idx string) map[string]any {
 			"ver":             map[string]any{"pool": 1, "epoch": 1},
 			"locator":         "",
 			"exists":          true,
-			"meta":            map[string]any{"mtime": "2026-03-06T03:34:11.918188Z"},
-			"tag":             "",
+			"meta":            map[string]any{"mtime": "2026-03-06T03:34:11.918188Z", "etag": "etag"},
+			"tag":             "tag",
 			"flags":           0,
 			"pending_map":     []any{},
 			"versioned_epoch": 0,
@@ -297,7 +336,7 @@ func pendingMapEntry(name string, instance string) bilist.Entry {
 		Meta: bilist.Meta{
 			Category:         0,
 			Size:             0,
-			MTime:            "",
+			MTime:            "2026-03-06T03:34:11.918188Z",
 			ETag:             "",
 			StorageClass:     "",
 			Owner:            "",
@@ -331,7 +370,7 @@ func pendingLogEntry(name string, instance string) bilist.Entry {
 		Meta: bilist.Meta{
 			Category:         0,
 			Size:             0,
-			MTime:            "",
+			MTime:            "2026-03-06T03:34:11.918188Z",
 			ETag:             "",
 			StorageClass:     "",
 			Owner:            "",
