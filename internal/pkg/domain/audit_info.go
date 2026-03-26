@@ -13,3 +13,7 @@ func NewAuditInfo(mTime time.Time, eTag string) *AuditInfo {
 		eTag:  eTag,
 	}
 }
+
+func (i *AuditInfo) IsDefault() bool {
+	return i.mTime.IsZero() && i.eTag == ""
+}

@@ -20,3 +20,14 @@ func NewMeta(
 		owner:       owner,
 	}
 }
+
+func (m *Meta) IsDefault() bool {
+	return m.objectSpec != nil &&
+		m.auditInfo != nil &&
+		m.contentInfo != nil &&
+		m.owner != nil &&
+		m.objectSpec.IsDefault() &&
+		m.auditInfo.IsDefault() &&
+		m.contentInfo.IsDefault() &&
+		m.owner.IsDefault()
+}

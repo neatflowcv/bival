@@ -177,10 +177,38 @@ func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainIsDuplicated(t *
 func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainShapeIsInvalid(t *testing.T) {
 	t.Parallel()
 
+	fixture := versionedHeadFixture()
+	fixture.flags = 0
+
+	assertVersionedObjectRejectedForInvalidHead(t, fixture)
+}
+
+func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainMetaIsNotDefault(t *testing.T) {
+	t.Parallel()
+
+	fixture := versionedHeadFixture()
+	fixture.category = 1
+
+	assertVersionedObjectRejectedForInvalidHead(t, fixture)
+}
+
+func assertVersionedObjectRejectedForInvalidHead(t *testing.T, fixture versionedEntryFixture) {
+	t.Helper()
+
 	group := domain.NewEntryGroup("alpha")
 	classifier := domain.NewEntryGroupClassifier()
 
-	invalidHead := newCustomVersionedPlainEntry(versionedEntryFixture{
+	invalidHead := newCustomVersionedPlainEntry(fixture, false)
+
+	require.NoError(t, group.AddPlain(invalidHead))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+}
+
+func versionedHeadFixture() versionedEntryFixture {
+	return versionedEntryFixture{
 		idx:            "alpha",
 		name:           "alpha",
 		instance:       "",
@@ -199,13 +227,7 @@ func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainShapeIsInvalid(t
 		owner:          "",
 		ownerDisplay:   "",
 		pendingMap:     false,
-	}, false)
-
-	require.NoError(t, group.AddPlain(invalidHead))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, domain.UnknownObject, classifier.Classify(group))
+	}
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainInstanceNonTagPayloadsDiffer(t *testing.T) {

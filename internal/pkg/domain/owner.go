@@ -11,3 +11,7 @@ func NewOwner(userID string, displayName string) *Owner {
 		displayName: displayName,
 	}
 }
+
+func (o *Owner) IsDefault() bool {
+	return o.userID == "" && o.displayName == ""
+}

@@ -57,7 +57,8 @@ func isValidVersionedHeadPlainEntry(entry *PlainEntry) bool {
 	return hasHeadIdentity(entry) &&
 		hasHeadVersion(payload) &&
 		hasHeadState(payload) &&
-		hasZeroValueHeadMeta(payload.meta)
+		hasHeadMetaParts(payload.meta) &&
+		payload.meta.IsDefault()
 }
 
 func headPlainPayload(entry *PlainEntry) (*DirPayload, bool) {
@@ -94,17 +95,6 @@ func hasHeadState(payload *DirPayload) bool {
 		len(payload.pendingMaps) == 0
 }
 
-func hasZeroValueHeadMeta(meta *Meta) bool {
-	if !hasHeadMetaParts(meta) {
-		return false
-	}
-
-	return hasZeroObjectSpec(meta.objectSpec) &&
-		hasZeroAuditInfo(meta.auditInfo) &&
-		hasZeroContentInfo(meta.contentInfo) &&
-		hasZeroOwner(meta.owner)
-}
-
 func hasHeadMetaParts(meta *Meta) bool {
 	if meta == nil {
 		return false
@@ -114,25 +104,6 @@ func hasHeadMetaParts(meta *Meta) bool {
 		meta.auditInfo != nil &&
 		meta.contentInfo != nil &&
 		meta.owner != nil
-}
-
-func hasZeroObjectSpec(spec *ObjectSpec) bool {
-	return spec.category == 0 &&
-		spec.size == 0 &&
-		spec.accountedSize == 0 &&
-		!spec.appendable
-}
-
-func hasZeroAuditInfo(info *AuditInfo) bool {
-	return info.mTime.IsZero() && info.eTag == ""
-}
-
-func hasZeroContentInfo(info *ContentInfo) bool {
-	return info.storageClass == "" && info.contentType == ""
-}
-
-func hasZeroOwner(owner *Owner) bool {
-	return owner.userID == "" && owner.displayName == ""
 }
 
 func hasValidVersionPairs(plainEntries []*PlainEntry, instanceEntries []*InstanceEntry) bool {

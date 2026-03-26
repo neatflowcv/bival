@@ -11,3 +11,7 @@ func NewContentInfo(storageClass string, contentType string) *ContentInfo {
 		contentType:  contentType,
 	}
 }
+
+func (i *ContentInfo) IsDefault() bool {
+	return i.storageClass == "" && i.contentType == ""
+}
