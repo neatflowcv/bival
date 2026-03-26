@@ -1,6 +1,6 @@
 # BI Entry Structure
 
-BI에서는 버저닝 오브젝트와 비버저닝 오브젝트의 형태가 다르다.
+BI에서는 버저닝 오브젝트와 비버저닝 오브젝트(`Unversioned Object`)의 형태가 다르다.
 
 ## 비버저닝 오브젝트
 
