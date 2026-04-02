@@ -3,7 +3,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 <bucket-name>" >&2
+  echo "Usage: $0 <input-file>" >&2
 }
 
 if [[ $# -ne 1 ]]; then
@@ -11,10 +11,19 @@ if [[ $# -ne 1 ]]; then
   exit 1
 fi
 
-bucket_name="$1"
-input_file="${bucket_name}.json"
-sorted_file="${bucket_name}.sorted.json"
-analyze_output_file="${bucket_name}.out"
+input_file="$1"
+
+if [[ ! -f "$input_file" ]]; then
+  echo "Input file not found: $input_file" >&2
+  exit 1
+fi
+
+input_dir=$(dirname "$input_file")
+input_base=$(basename "$input_file")
+input_stem="${input_base%.*}"
+
+sorted_file="${input_dir}/${input_stem}.sorted.json"
+analyze_output_file="${input_dir}/${input_stem}.out"
 
 run_step() {
   local label="$1"
@@ -31,7 +40,6 @@ run_step() {
 
 total_started_at=$(date +%s)
 
-echo "Bucket: $bucket_name"
 echo "Input : $input_file"
 echo "Sorted: $sorted_file"
 echo "Output: $analyze_output_file"
