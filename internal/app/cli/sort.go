@@ -28,6 +28,7 @@ type SortCmd struct {
 	Input      string `arg:""             help:"Input BI list JSON file."                                   type:"path"`
 	Output     string `arg:""             help:"Output path for the sorted BI list JSON file."              type:"path"`
 	ChunkBytes int64  `default:"67108864" help:"Maximum chunk size held in memory before spilling to disk."`
+	TempDir    string `help:"Directory for intermediate chunk files. Defaults to the system temp directory." type:"path"`
 }
 
 func (cmd *SortCmd) Run() error {
@@ -35,11 +36,17 @@ func (cmd *SortCmd) Run() error {
 		return errInvalidChunkBytes
 	}
 
-	return sortFile(cmd.Input, cmd.Output, cmd.ChunkBytes)
+	return sortFile(cmd.Input, cmd.Output, cmd.ChunkBytes, cmd.TempDir)
 }
 
-func sortFile(inputPath string, outputPath string, chunkBytes int64) error {
-	log.Printf("input=%q output=%q chunk_bytes=%d", inputPath, outputPath, chunkBytes)
+func sortFile(inputPath string, outputPath string, chunkBytes int64, tempDirBase string) error {
+	log.Printf(
+		"input=%q output=%q chunk_bytes=%d temp_dir=%q",
+		inputPath,
+		outputPath,
+		chunkBytes,
+		tempDirBase,
+	)
 
 	inputFile, err := os.Open(filepath.Clean(inputPath))
 	if err != nil {
@@ -50,7 +57,7 @@ func sortFile(inputPath string, outputPath string, chunkBytes int64) error {
 		_ = inputFile.Close()
 	}()
 
-	tempDir, err := os.MkdirTemp("", "bisort-*")
+	tempDir, err := os.MkdirTemp(tempDirBase, "bisort-*")
 	if err != nil {
 		return fmt.Errorf("create temp dir: %w", err)
 	}

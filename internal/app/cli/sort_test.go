@@ -31,7 +31,7 @@ func TestSortFileStableByNameAcrossChunks(t *testing.T) {
 
 	writeRecords(t, inputPath, records)
 
-	err := sortFile(inputPath, outputPath, 200)
+	err := sortFile(inputPath, outputPath, 200, "")
 	require.NoError(t, err)
 
 	sorted := readRecords(t, outputPath)
@@ -63,7 +63,7 @@ func TestSortFileEmptyInput(t *testing.T) {
 
 	writeRecords(t, inputPath, []map[string]any{})
 
-	err := sortFile(inputPath, outputPath, 64)
+	err := sortFile(inputPath, outputPath, 64, "")
 	require.NoError(t, err)
 
 	// #nosec G304 -- test reads a file created in t.TempDir().
@@ -97,7 +97,7 @@ func TestSortFileWritesIndentedJSON(t *testing.T) {
 		recordMap("alpha", "plain", "alpha-1"),
 	})
 
-	err := sortFile(inputPath, outputPath, 128)
+	err := sortFile(inputPath, outputPath, 128, "")
 	require.NoError(t, err)
 
 	// #nosec G304 -- test reads a file created in t.TempDir().
@@ -134,7 +134,7 @@ func TestSortFilePreservesUnknownFields(t *testing.T) {
 		},
 	})
 
-	err := sortFile(inputPath, outputPath, 128)
+	err := sortFile(inputPath, outputPath, 128, "")
 	require.NoError(t, err)
 
 	// #nosec G304 -- test reads a file created in t.TempDir().
@@ -157,6 +157,47 @@ func TestRunSortCommand(t *testing.T) {
 	})
 
 	err := Run([]string{"sort", inputPath, outputPath})
+	require.NoError(t, err)
+
+	sorted := readRecords(t, outputPath)
+	require.Equal(t, "alpha-1", sorted[0].Idx)
+	require.Equal(t, "beta-1", sorted[1].Idx)
+}
+
+func TestSortFileUsesConfiguredTempDir(t *testing.T) {
+	t.Parallel()
+
+	tempRoot := t.TempDir()
+	inputPath := filepath.Join(t.TempDir(), "input.json")
+	outputPath := filepath.Join(t.TempDir(), "output.json")
+
+	writeRecords(t, inputPath, []map[string]any{
+		recordMap("beta", "plain", "beta-1"),
+		recordMap("alpha", "plain", "alpha-1"),
+		recordMap("gamma", "plain", "gamma-1"),
+	})
+
+	err := sortFile(inputPath, outputPath, 64, tempRoot)
+	require.NoError(t, err)
+
+	entries, err := os.ReadDir(tempRoot)
+	require.NoError(t, err)
+	require.Empty(t, entries)
+}
+
+func TestRunSortCommandAcceptsTempDirFlag(t *testing.T) {
+	t.Parallel()
+
+	tempRoot := t.TempDir()
+	inputPath := filepath.Join(t.TempDir(), "input.json")
+	outputPath := filepath.Join(t.TempDir(), "output.json")
+
+	writeRecords(t, inputPath, []map[string]any{
+		recordMap("beta", "plain", "beta-1"),
+		recordMap("alpha", "plain", "alpha-1"),
+	})
+
+	err := Run([]string{"sort", "--temp-dir", tempRoot, inputPath, outputPath})
 	require.NoError(t, err)
 
 	sorted := readRecords(t, outputPath)
