@@ -93,10 +93,6 @@ func (g *EntryGroup) ProblemReason() string {
 	return ""
 }
 
-func (g *EntryGroup) versionedEntryCount() int {
-	return g.PlainCount() + g.InstanceCount() + g.OLHCount()
-}
-
 func (g *EntryGroup) AddPlain(entry *PlainEntry) error {
 	err := g.validateName(entry.Name())
 	if err != nil {
@@ -148,4 +144,8 @@ func (g *EntryGroup) validateName(entryName string) error {
 	}
 
 	return fmt.Errorf("%w: entry name %q does not match group name %q", errEntryGroupNameMismatch, entryName, g.name)
+}
+
+func (g *EntryGroup) versionedEntryCount() int {
+	return g.PlainCount() + g.InstanceCount() + g.OLHCount()
 }

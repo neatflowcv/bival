@@ -5,4 +5,11 @@ linters:
     - revive
     - depguard
     - tagliatelle
+    - varnamelen
+    - ireturn
     - wsl # deprecated
+  exclusions:
+    rules:
+      - linters:
+          - lll
+        source: '`[^`]+:"[^"]+"'

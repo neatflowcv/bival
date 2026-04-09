@@ -80,6 +80,7 @@ func TestSortCmdRejectsInvalidChunkBytes(t *testing.T) {
 		Input:      "in.json",
 		Output:     "out.json",
 		ChunkBytes: 0,
+		TempDir:    "",
 	}
 
 	err := cmd.Run()

@@ -25,9 +25,9 @@ var (
 )
 
 type SortCmd struct {
-	Input      string `arg:""             help:"Input BI list JSON file."                                   type:"path"`
-	Output     string `arg:""             help:"Output path for the sorted BI list JSON file."              type:"path"`
-	ChunkBytes int64  `default:"67108864" help:"Maximum chunk size held in memory before spilling to disk."`
+	Input      string `arg:""                                                                                help:"Input BI list JSON file."                                   type:"path"`
+	Output     string `arg:""                                                                                help:"Output path for the sorted BI list JSON file."              type:"path"`
+	ChunkBytes int64  `default:"67108864"                                                                    help:"Maximum chunk size held in memory before spilling to disk."`
 	TempDir    string `help:"Directory for intermediate chunk files. Defaults to the system temp directory." type:"path"`
 }
 
