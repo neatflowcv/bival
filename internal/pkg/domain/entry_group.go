@@ -7,7 +7,11 @@ import (
 
 var errEntryGroupNameMismatch = errors.New("entry name does not match group name")
 
-const unknownObjectReason = "object kind is unknown"
+const (
+	unknownObjectReason           = "object kind is unknown"
+	tooManyVersionedEntriesReason = "too many versioned entries"
+	maxVersionedEntryCount        = 6
+)
 
 type EntryGroup struct {
 	name            string
@@ -76,11 +80,21 @@ func (g *EntryGroup) ProblemReason() string {
 		return "pending entry exists"
 	}
 
-	if NewEntryGroupClassifier().Classify(g) == UnknownObject {
+	objectKind := NewEntryGroupClassifier().Classify(g)
+
+	if objectKind == VersionedObject && g.versionedEntryCount() > maxVersionedEntryCount {
+		return tooManyVersionedEntriesReason
+	}
+
+	if objectKind == UnknownObject {
 		return unknownObjectReason
 	}
 
 	return ""
+}
+
+func (g *EntryGroup) versionedEntryCount() int {
+	return g.PlainCount() + g.InstanceCount() + g.OLHCount()
 }
 
 func (g *EntryGroup) AddPlain(entry *PlainEntry) error {

@@ -86,6 +86,63 @@ func TestEntryGroupCountsMatchStoredEntries(t *testing.T) {
 	require.Equal(t, len(group.OLHEntries()), group.OLHCount())
 }
 
+func TestEntryGroupProblemReasonReturnsEmptyForVersionedObjectAtThreshold(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionTwo := defaultVersionedFixture("v2")
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Empty(t, group.ProblemReason())
+}
+
+func TestEntryGroupProblemReasonReportsTooManyVersionedEntries(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionTwo := defaultVersionedFixture("v2")
+	versionThree := defaultVersionedFixture("v3")
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionThree)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, "too many versioned entries", group.ProblemReason())
+}
+
+func TestEntryGroupProblemReasonPrefersPendingEntryOverVersionedEntryLimit(t *testing.T) {
+	t.Parallel()
+
+	group := domain.NewEntryGroup("alpha")
+
+	versionOne := fixtureWithPendingMap(defaultVersionedFixture("v1"), true)
+	versionTwo := defaultVersionedFixture("v2")
+	versionThree := defaultVersionedFixture("v3")
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionThree)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, "pending entry exists", group.ProblemReason())
+}
+
 func TestEntryGroupClassifierReturnsUnversionedObject(t *testing.T) {
 	t.Parallel()
 

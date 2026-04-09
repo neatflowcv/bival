@@ -134,6 +134,30 @@ func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
 	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
 }
 
+func TestAnalyzeFileReportsTooManyVersionedEntries(t *testing.T) {
+	t.Parallel()
+
+	inputPath := filepath.Join(t.TempDir(), "input.json")
+	writeRecords(t, inputPath, []map[string]any{
+		versionedHeadRecordMap("alpha"),
+		versionedPlainRecordMap("alpha", "v1"),
+		versionedPlainRecordMap("alpha", "v2"),
+		versionedPlainRecordMap("alpha", "v3"),
+		versionedInstanceRecordMap("alpha", "v1"),
+		versionedInstanceRecordMap("alpha", "v2"),
+		versionedInstanceRecordMap("alpha", "v3"),
+		versionedOLHRecordMap("alpha", "v1"),
+	})
+
+	var buf bytes.Buffer
+
+	logger := log.New(&buf, "", 0)
+
+	err := analyzeFile(inputPath, logger)
+	require.NoError(t, err)
+	require.Equal(t, "problem name=\"alpha\" reason=\"too many versioned entries\"\n", buf.String())
+}
+
 func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 	t.Parallel()
 
