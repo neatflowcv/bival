@@ -23,3 +23,43 @@ func NewDirPayload(
 		pendingMaps: pendingMaps,
 	}
 }
+
+func (p *DirPayload) Key() *Key {
+	if p == nil {
+		return nil
+	}
+
+	return p.key
+}
+
+func (p *DirPayload) VersionInfo() *DirVersionInfo {
+	if p == nil {
+		return nil
+	}
+
+	return p.versionInfo
+}
+
+func (p *DirPayload) State() *DirState {
+	if p == nil {
+		return nil
+	}
+
+	return p.state
+}
+
+func (p *DirPayload) Meta() *Meta {
+	if p == nil {
+		return nil
+	}
+
+	return p.meta
+}
+
+func (p *DirPayload) PendingMaps() []*PendingMap {
+	if p == nil {
+		return nil
+	}
+
+	return p.pendingMaps
+}

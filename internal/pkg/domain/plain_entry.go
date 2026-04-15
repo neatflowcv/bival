@@ -55,3 +55,11 @@ func (e *PlainEntry) Flags() int {
 func (e *PlainEntry) HasPendingMap() bool {
 	return e.entry.hasPendingMap()
 }
+
+func (e *PlainEntry) Payload() *DirPayload {
+	if e == nil || e.entry == nil {
+		return nil
+	}
+
+	return e.entry.payload
+}

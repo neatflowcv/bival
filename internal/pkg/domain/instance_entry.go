@@ -17,3 +17,11 @@ func (e *InstanceEntry) Name() string {
 func (e *InstanceEntry) HasPendingMap() bool {
 	return e.entry.hasPendingMap()
 }
+
+func (e *InstanceEntry) Payload() *DirPayload {
+	if e == nil || e.entry == nil {
+		return nil
+	}
+
+	return e.entry.payload
+}

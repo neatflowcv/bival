@@ -21,3 +21,11 @@ func (e *OLHEntry) Name() string {
 func (e *OLHEntry) HasPendingLog() bool {
 	return len(e.payload.pendingLogs) > 0
 }
+
+func (e *OLHEntry) Payload() *OLHPayload {
+	if e == nil {
+		return nil
+	}
+
+	return e.payload
+}

@@ -1,8 +1,10 @@
-package domain
+package entrygroup
 
 import (
 	"errors"
 	"fmt"
+
+	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
 var errEntryGroupNameMismatch = errors.New("entry name does not match group name")
@@ -15,12 +17,12 @@ const (
 
 type EntryGroup struct {
 	name            string
-	plainEntries    []*PlainEntry
-	instanceEntries []*InstanceEntry
-	olhEntries      []*OLHEntry
+	plainEntries    []*domain.PlainEntry
+	instanceEntries []*domain.InstanceEntry
+	olhEntries      []*domain.OLHEntry
 }
 
-func NewEntryGroup(name string) *EntryGroup {
+func New(name string) *EntryGroup {
 	return &EntryGroup{
 		name:            name,
 		plainEntries:    nil,
@@ -80,7 +82,7 @@ func (g *EntryGroup) ProblemReason() string {
 		return "pending entry exists"
 	}
 
-	objectKind := NewEntryGroupClassifier().Classify(g)
+	objectKind := NewClassifier().Classify(g)
 
 	if objectKind == VersionedObject && g.versionedEntryCount() > maxVersionedEntryCount {
 		return tooManyVersionedEntriesReason
@@ -93,7 +95,7 @@ func (g *EntryGroup) ProblemReason() string {
 	return ""
 }
 
-func (g *EntryGroup) AddPlain(entry *PlainEntry) error {
+func (g *EntryGroup) AddPlain(entry *domain.PlainEntry) error {
 	err := g.validateName(entry.Name())
 	if err != nil {
 		return err
@@ -104,7 +106,7 @@ func (g *EntryGroup) AddPlain(entry *PlainEntry) error {
 	return nil
 }
 
-func (g *EntryGroup) AddInstance(entry *InstanceEntry) error {
+func (g *EntryGroup) AddInstance(entry *domain.InstanceEntry) error {
 	err := g.validateName(entry.Name())
 	if err != nil {
 		return err
@@ -115,7 +117,7 @@ func (g *EntryGroup) AddInstance(entry *InstanceEntry) error {
 	return nil
 }
 
-func (g *EntryGroup) AddOLH(entry *OLHEntry) error {
+func (g *EntryGroup) AddOLH(entry *domain.OLHEntry) error {
 	err := g.validateName(entry.Name())
 	if err != nil {
 		return err
@@ -126,15 +128,15 @@ func (g *EntryGroup) AddOLH(entry *OLHEntry) error {
 	return nil
 }
 
-func (g *EntryGroup) PlainEntries() []*PlainEntry {
+func (g *EntryGroup) PlainEntries() []*domain.PlainEntry {
 	return g.plainEntries
 }
 
-func (g *EntryGroup) InstanceEntries() []*InstanceEntry {
+func (g *EntryGroup) InstanceEntries() []*domain.InstanceEntry {
 	return g.instanceEntries
 }
 
-func (g *EntryGroup) OLHEntries() []*OLHEntry {
+func (g *EntryGroup) OLHEntries() []*domain.OLHEntry {
 	return g.olhEntries
 }
 

@@ -31,3 +31,11 @@ func (m *Meta) IsDefault() bool {
 		m.contentInfo.IsDefault() &&
 		m.owner.IsDefault()
 }
+
+func (m *Meta) HasParts() bool {
+	return m != nil &&
+		m.objectSpec != nil &&
+		m.auditInfo != nil &&
+		m.contentInfo != nil &&
+		m.owner != nil
+}

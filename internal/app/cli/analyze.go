@@ -10,6 +10,7 @@ import (
 
 	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
+	"github.com/neatflowcv/bival/internal/pkg/domain/entrygroup"
 )
 
 var errUnsupportedBuiltEntryType = errors.New("unsupported built entry type")
@@ -42,7 +43,7 @@ func analyzeFile(path string, logger *log.Logger) error {
 
 func analyzeRecords(reader *bilist.Reader, logger *log.Logger) error {
 	var (
-		current     *domain.EntryGroup
+		current     *entrygroup.EntryGroup
 		currentName string
 	)
 
@@ -67,7 +68,7 @@ func analyzeRecords(reader *bilist.Reader, logger *log.Logger) error {
 	}
 }
 
-func finishAnalyze(err error, current *domain.EntryGroup, logger *log.Logger) (bool, error) {
+func finishAnalyze(err error, current *entrygroup.EntryGroup, logger *log.Logger) (bool, error) {
 	if errors.Is(err, io.EOF) {
 		if current != nil {
 			logProblem(current, logger)
@@ -83,15 +84,15 @@ func finishAnalyze(err error, current *domain.EntryGroup, logger *log.Logger) (b
 	return false, nil
 }
 
-func nextGroup(current *domain.EntryGroup, currentName string, nextName string) *domain.EntryGroup {
+func nextGroup(current *entrygroup.EntryGroup, currentName string, nextName string) *entrygroup.EntryGroup {
 	if current == nil || currentName != nextName {
-		return domain.NewEntryGroup(nextName)
+		return entrygroup.New(nextName)
 	}
 
 	return current
 }
 
-func addRecordToGroup(group *domain.EntryGroup, record *bilist.Record) error {
+func addRecordToGroup(group *entrygroup.EntryGroup, record *bilist.Record) error {
 	entry, err := buildEntry(record)
 	if err != nil {
 		return fmt.Errorf("build entry idx=%q type=%q: %w", record.Idx, record.Type, err)
@@ -123,7 +124,7 @@ func recordName(record *bilist.Record) string {
 	return record.Entry.Name
 }
 
-func logProblem(group *domain.EntryGroup, logger *log.Logger) {
+func logProblem(group *entrygroup.EntryGroup, logger *log.Logger) {
 	reason := group.ProblemReason()
 	if reason == "" {
 		return

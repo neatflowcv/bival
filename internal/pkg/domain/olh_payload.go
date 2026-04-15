@@ -23,3 +23,11 @@ func NewOLHPayload(
 		tag:         tag,
 	}
 }
+
+func (p *OLHPayload) Key() *Key {
+	if p == nil {
+		return nil
+	}
+
+	return p.key
+}

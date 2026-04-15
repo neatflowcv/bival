@@ -1,22 +1,22 @@
-package domain
+package entrygroup
 
-type EntryGroupSpecification interface {
+type Specification interface {
 	IsSatisfiedBy(group *EntryGroup) bool
 }
 
-type EntryGroupClassifier struct {
-	unversionedSpec EntryGroupSpecification
-	versionedSpec   EntryGroupSpecification
+type Classifier struct {
+	unversionedSpec Specification
+	versionedSpec   Specification
 }
 
-func NewEntryGroupClassifier() EntryGroupClassifier {
-	return EntryGroupClassifier{
+func NewClassifier() Classifier {
+	return Classifier{
 		unversionedSpec: unversionedObjectSpecification{},
 		versionedSpec:   versionedObjectSpecification{},
 	}
 }
 
-func (c EntryGroupClassifier) Classify(group *EntryGroup) ObjectKind {
+func (c Classifier) Classify(group *EntryGroup) ObjectKind {
 	if c.unversionedSpec.IsSatisfiedBy(group) {
 		return UnversionedObject
 	}

@@ -1,4 +1,6 @@
-package domain
+package entrygroup
+
+import "github.com/neatflowcv/bival/internal/pkg/domain"
 
 type unversionedObjectSpecification struct{}
 
@@ -21,19 +23,19 @@ func hasUnversionedEntryCounts(group *EntryGroup) bool {
 		group.OLHCount() == 0
 }
 
-func isValidUnversionedPlainEntry(entry *PlainEntry) bool {
+func isValidUnversionedPlainEntry(entry *domain.PlainEntry) bool {
 	return hasValidUnversionedIdentity(entry) &&
 		hasValidUnversionedState(entry)
 }
 
-func hasValidUnversionedIdentity(entry *PlainEntry) bool {
+func hasValidUnversionedIdentity(entry *domain.PlainEntry) bool {
 	return entry.Index() == entry.Name() &&
 		entry.Instance() == "" &&
 		entry.VersionPool() >= 1 &&
 		entry.VersionEpoch() >= 1
 }
 
-func hasValidUnversionedState(entry *PlainEntry) bool {
+func hasValidUnversionedState(entry *domain.PlainEntry) bool {
 	return entry.Exists() &&
 		!entry.MTime().IsZero() &&
 		entry.ETag() != "" &&
