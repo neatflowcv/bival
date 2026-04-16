@@ -12,7 +12,7 @@ var errEntryGroupNameMismatch = errors.New("entry name does not match group name
 const (
 	unknownObjectReason           = "object kind is unknown"
 	tooManyVersionedEntriesReason = "too many versioned entries"
-	maxVersionedEntryCount        = 6
+	maxVersionedEntryCount        = 8
 )
 
 type EntryGroup struct {
