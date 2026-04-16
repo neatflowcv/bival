@@ -112,14 +112,17 @@ func TestEntryGroupProblemReasonReportsTooManyVersionedEntries(t *testing.T) {
 	versionOne := defaultVersionedFixture("v1")
 	versionTwo := defaultVersionedFixture("v2")
 	versionThree := defaultVersionedFixture("v3")
+	versionFour := defaultVersionedFixture("v4")
 
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionThree)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionFour)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionFour)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
 	require.Equal(t, "too many versioned entries", group.ProblemReason())
 }

@@ -143,9 +143,11 @@ func TestAnalyzeFileReportsTooManyVersionedEntries(t *testing.T) {
 		versionedPlainRecordMap("alpha", "v1"),
 		versionedPlainRecordMap("alpha", "v2"),
 		versionedPlainRecordMap("alpha", "v3"),
+		versionedPlainRecordMap("alpha", "v4"),
 		versionedInstanceRecordMap("alpha", "v1"),
 		versionedInstanceRecordMap("alpha", "v2"),
 		versionedInstanceRecordMap("alpha", "v3"),
+		versionedInstanceRecordMap("alpha", "v4"),
 		versionedOLHRecordMap("alpha", "v1"),
 	})
 
