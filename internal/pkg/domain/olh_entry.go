@@ -36,10 +36,10 @@ func (e *OLHEntry) Name() string {
 	return e.key.Name()
 }
 
-func (e *OLHEntry) HasPendingLog() bool {
-	return len(e.pendingLogs) > 0
+func (e *OLHEntry) Instance() string {
+	return e.key.Instance()
 }
 
-func (e *OLHEntry) Payload() *OLHPayload {
-	return NewOLHPayload(e.key, e.state, e.epoch, e.pendingLogs, e.tag)
+func (e *OLHEntry) HasPendingLog() bool {
+	return len(e.pendingLogs) > 0
 }

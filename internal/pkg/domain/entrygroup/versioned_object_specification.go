@@ -237,7 +237,11 @@ func hasEquivalentVersionPayload(plainEntry *domain.PlainEntry, instanceEntry *d
 }
 
 func payloadWithoutTag(payload *domain.DirPayload) *domain.DirPayload {
-	if payload == nil || payload.Key() == nil || payload.VersionInfo() == nil || payload.State() == nil || payload.Meta() == nil {
+	if payload == nil ||
+		payload.Key() == nil ||
+		payload.VersionInfo() == nil ||
+		payload.State() == nil ||
+		payload.Meta() == nil {
 		return nil
 	}
 
@@ -266,7 +270,7 @@ func hasValidOLHReference(olhEntries []*domain.OLHEntry, instanceEntries []*doma
 		return false
 	}
 
-	referencedInstance := olhEntry.Payload().Key().Instance()
+	referencedInstance := olhEntry.Instance()
 	_, exists := instanceSet[referencedInstance]
 
 	return exists
@@ -278,7 +282,7 @@ func singleValidOLHEntry(entries []*domain.OLHEntry) (*domain.OLHEntry, bool) {
 	}
 
 	entry := entries[0]
-	if entry == nil || entry.Payload() == nil || entry.Payload().Key() == nil {
+	if entry == nil || entry.Name() == "" {
 		return nil, false
 	}
 
