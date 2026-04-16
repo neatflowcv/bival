@@ -1,2 +1,4 @@
 .priv/
 /vendor
+.codex
+/bival
