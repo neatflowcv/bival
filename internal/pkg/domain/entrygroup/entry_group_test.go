@@ -917,7 +917,8 @@ func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OL
 	return domain.NewOLHEntry(domain.OLHEntryParams{
 		Kind:        "olh",
 		Index:       []byte(name),
-		Key:         domain.NewKey(name, instance),
+		Name:        name,
+		Instance:    instance,
 		State:       nil,
 		Epoch:       0,
 		PendingLogs: pendingLogs,

@@ -31,7 +31,8 @@ func buildEntry(record *bilist.Record) (any, error) {
 		return domain.NewOLHEntry(domain.OLHEntryParams{
 			Kind:        record.Type,
 			Index:       []byte(record.Idx),
-			Key:         domain.NewKey(record.Entry.Key.Name, record.Entry.Key.Instance),
+			Name:        record.Entry.Key.Name,
+			Instance:    record.Entry.Key.Instance,
 			State:       domain.NewOLHState(record.Entry.DeleteMarker, record.Entry.PendingRemoval, record.Entry.Exists),
 			Epoch:       record.Entry.Epoch,
 			PendingLogs: newPendingLogs(record),

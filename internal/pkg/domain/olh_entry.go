@@ -3,7 +3,8 @@ package domain
 type OLHEntryParams struct {
 	Kind        string
 	Index       []byte
-	Key         *Key
+	Name        string
+	Instance    string
 	State       *OLHState
 	Epoch       int
 	PendingLogs []*PendingLog
@@ -13,7 +14,8 @@ type OLHEntryParams struct {
 type OLHEntry struct {
 	kind        string
 	index       []byte
-	key         *Key
+	name        string
+	instance    string
 	state       *OLHState
 	epoch       int
 	pendingLogs []*PendingLog
@@ -24,7 +26,8 @@ func NewOLHEntry(p OLHEntryParams) *OLHEntry {
 	return &OLHEntry{
 		kind:        p.Kind,
 		index:       p.Index,
-		key:         p.Key,
+		name:        p.Name,
+		instance:    p.Instance,
 		state:       p.State,
 		epoch:       p.Epoch,
 		pendingLogs: p.PendingLogs,
@@ -33,11 +36,11 @@ func NewOLHEntry(p OLHEntryParams) *OLHEntry {
 }
 
 func (e *OLHEntry) Name() string {
-	return e.key.Name()
+	return e.name
 }
 
 func (e *OLHEntry) Instance() string {
-	return e.key.Instance()
+	return e.instance
 }
 
 func (e *OLHEntry) HasPendingLog() bool {
