@@ -915,15 +915,13 @@ func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OL
 	}
 
 	return domain.NewOLHEntry(domain.OLHEntryParams{
-		Kind:  "olh",
-		Index: []byte(name),
-		Payload: domain.NewOLHPayload(
-			domain.NewKey(name, instance),
-			nil,
-			0,
-			pendingLogs,
-			"",
-		),
+		Kind:        "olh",
+		Index:       []byte(name),
+		Key:         domain.NewKey(name, instance),
+		State:       nil,
+		Epoch:       0,
+		PendingLogs: pendingLogs,
+		Tag:         "",
 	})
 }
 
