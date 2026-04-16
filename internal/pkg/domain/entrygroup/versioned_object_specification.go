@@ -259,7 +259,7 @@ func payloadWithoutTag(payload *domain.DirPayload) *domain.DirPayload {
 	)
 }
 
-func hasValidOLHReference(olhEntries []*domain.OLHEntry, instanceEntries []*domain.InstanceEntry) bool {
+func hasValidOLHReference(olhEntries []*domain.OLH, instanceEntries []*domain.InstanceEntry) bool {
 	olhEntry, olhEntryOK := singleValidOLHEntry(olhEntries)
 	if !olhEntryOK {
 		return false
@@ -276,7 +276,7 @@ func hasValidOLHReference(olhEntries []*domain.OLHEntry, instanceEntries []*doma
 	return exists
 }
 
-func singleValidOLHEntry(entries []*domain.OLHEntry) (*domain.OLHEntry, bool) {
+func singleValidOLHEntry(entries []*domain.OLH) (*domain.OLH, bool) {
 	if len(entries) != 1 {
 		return nil, false
 	}

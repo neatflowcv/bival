@@ -1,6 +1,6 @@
 package domain
 
-type OLHEntryParams struct {
+type OLHParams struct {
 	Kind           string
 	Index          []byte
 	Name           string
@@ -13,7 +13,7 @@ type OLHEntryParams struct {
 	Tag            string
 }
 
-type OLHEntry struct {
+type OLH struct {
 	kind           string
 	index          []byte
 	name           string
@@ -26,8 +26,8 @@ type OLHEntry struct {
 	tag            string
 }
 
-func NewOLHEntry(p OLHEntryParams) *OLHEntry {
-	return &OLHEntry{
+func NewOLH(p OLHParams) *OLH {
+	return &OLH{
 		kind:           p.Kind,
 		index:          p.Index,
 		name:           p.Name,
@@ -41,14 +41,14 @@ func NewOLHEntry(p OLHEntryParams) *OLHEntry {
 	}
 }
 
-func (e *OLHEntry) Name() string {
+func (e *OLH) Name() string {
 	return e.name
 }
 
-func (e *OLHEntry) Instance() string {
+func (e *OLH) Instance() string {
 	return e.instance
 }
 
-func (e *OLHEntry) HasPendingLog() bool {
+func (e *OLH) HasPendingLog() bool {
 	return len(e.pendingLogs) > 0
 }

@@ -103,7 +103,7 @@ func addRecordToGroup(group *entrygroup.EntryGroup, record *bilist.Record) error
 		err = group.AddPlain(typed)
 	case *domain.InstanceEntry:
 		err = group.AddInstance(typed)
-	case *domain.OLHEntry:
+	case *domain.OLH:
 		err = group.AddOLH(typed)
 	default:
 		return fmt.Errorf("%w %T", errUnsupportedBuiltEntryType, entry)

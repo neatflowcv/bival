@@ -904,17 +904,17 @@ func sampleDeleteMarkerMTime() time.Time {
 	return time.Date(2026, time.March, 6, 4, 11, 7, 657765000, time.UTC)
 }
 
-func newOLHEntry(name string, pending bool) *domain.OLHEntry {
+func newOLHEntry(name string, pending bool) *domain.OLH {
 	return newVersionedOLHEntry(name, "v1", pending)
 }
 
-func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OLHEntry {
+func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OLH {
 	var pendingLogs []*domain.PendingLog
 	if pending {
 		pendingLogs = []*domain.PendingLog{nil}
 	}
 
-	return domain.NewOLHEntry(domain.OLHEntryParams{
+	return domain.NewOLH(domain.OLHParams{
 		Kind:           "olh",
 		Index:          []byte(name),
 		Name:           name,

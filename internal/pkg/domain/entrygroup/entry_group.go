@@ -19,7 +19,7 @@ type EntryGroup struct {
 	name            string
 	plainEntries    []*domain.PlainEntry
 	instanceEntries []*domain.InstanceEntry
-	olhEntries      []*domain.OLHEntry
+	olhEntries      []*domain.OLH
 }
 
 func New(name string) *EntryGroup {
@@ -117,7 +117,7 @@ func (g *EntryGroup) AddInstance(entry *domain.InstanceEntry) error {
 	return nil
 }
 
-func (g *EntryGroup) AddOLH(entry *domain.OLHEntry) error {
+func (g *EntryGroup) AddOLH(entry *domain.OLH) error {
 	err := g.validateName(entry.Name())
 	if err != nil {
 		return err
@@ -136,7 +136,7 @@ func (g *EntryGroup) InstanceEntries() []*domain.InstanceEntry {
 	return g.instanceEntries
 }
 
-func (g *EntryGroup) OLHEntries() []*domain.OLHEntry {
+func (g *EntryGroup) OLHEntries() []*domain.OLH {
 	return g.olhEntries
 }
 
