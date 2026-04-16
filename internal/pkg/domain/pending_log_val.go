@@ -4,16 +4,25 @@ type PendingLogVal struct {
 	epoch        int
 	op           string
 	opTag        string
-	key          *Key
+	name         string
+	instance     string
 	deleteMarker bool
 }
 
-func NewPendingLogVal(epoch int, op string, opTag string, key *Key, deleteMarker bool) *PendingLogVal {
+func NewPendingLogVal(
+	epoch int,
+	op string,
+	opTag string,
+	name string,
+	instance string,
+	deleteMarker bool,
+) *PendingLogVal {
 	return &PendingLogVal{
 		epoch:        epoch,
 		op:           op,
 		opTag:        opTag,
-		key:          key,
+		name:         name,
+		instance:     instance,
 		deleteMarker: deleteMarker,
 	}
 }
