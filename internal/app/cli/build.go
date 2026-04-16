@@ -28,17 +28,17 @@ func buildEntry(record *bilist.Record) (any, error) {
 
 		return domain.NewPlainEntry(entry), nil
 	case "olh":
-		return domain.NewOLHEntry(
-			record.Type,
-			[]byte(record.Idx),
-			domain.NewOLHPayload(
+		return domain.NewOLHEntry(domain.OLHEntryParams{
+			Kind:  record.Type,
+			Index: []byte(record.Idx),
+			Payload: domain.NewOLHPayload(
 				domain.NewKey(record.Entry.Key.Name, record.Entry.Key.Instance),
 				domain.NewOLHState(record.Entry.DeleteMarker, record.Entry.PendingRemoval, record.Entry.Exists),
 				record.Entry.Epoch,
 				newPendingLogs(record),
 				record.Entry.Tag,
 			),
-		), nil
+		}), nil
 	default:
 		return nil, fmt.Errorf("%w %q", errUnsupportedRecordType, record.Type)
 	}

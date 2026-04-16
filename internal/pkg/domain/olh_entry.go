@@ -1,16 +1,22 @@
 package domain
 
+type OLHEntryParams struct {
+	Kind    string
+	Index   []byte
+	Payload *OLHPayload
+}
+
 type OLHEntry struct {
 	kind    string
 	index   []byte
 	payload *OLHPayload
 }
 
-func NewOLHEntry(kind string, index []byte, payload *OLHPayload) *OLHEntry {
+func NewOLHEntry(p OLHEntryParams) *OLHEntry {
 	return &OLHEntry{
-		kind:    kind,
-		index:   index,
-		payload: payload,
+		kind:    p.Kind,
+		index:   p.Index,
+		payload: p.Payload,
 	}
 }
 

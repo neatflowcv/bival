@@ -911,17 +911,17 @@ func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OL
 		pendingLogs = []*domain.PendingLog{nil}
 	}
 
-	return domain.NewOLHEntry(
-		"olh",
-		[]byte(name),
-		domain.NewOLHPayload(
+	return domain.NewOLHEntry(domain.OLHEntryParams{
+		Kind:  "olh",
+		Index: []byte(name),
+		Payload: domain.NewOLHPayload(
 			domain.NewKey(name, instance),
 			nil,
 			0,
 			pendingLogs,
 			"",
 		),
-	)
+	})
 }
 
 func versionedPlainIndex(instance string) string {
