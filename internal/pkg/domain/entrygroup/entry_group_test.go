@@ -775,10 +775,10 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 	}
 
 	return domain.NewPlainEntry(
-		domain.NewDirEntry(
-			"plain",
-			[]byte(idx),
-			domain.NewDirPayload(
+		domain.NewDirEntry(domain.DirEntryParams{
+			Kind:  "plain",
+			Index: []byte(idx),
+			Payload: domain.NewDirPayload(
 				domain.NewKey(fixture.name, fixture.instance),
 				domain.NewDirVersionInfo(
 					domain.NewVersion(fixture.pool, fixture.epoch),
@@ -803,7 +803,7 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 				),
 				pendingMaps,
 			),
-		),
+		}),
 	)
 }
 
@@ -814,10 +814,10 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 	}
 
 	return domain.NewInstanceEntry(
-		domain.NewDirEntry(
-			"instance",
-			[]byte(versionedInstanceIndex(fixture.instance)),
-			domain.NewDirPayload(
+		domain.NewDirEntry(domain.DirEntryParams{
+			Kind:  "instance",
+			Index: []byte(versionedInstanceIndex(fixture.instance)),
+			Payload: domain.NewDirPayload(
 				domain.NewKey(fixture.name, fixture.instance),
 				domain.NewDirVersionInfo(
 					domain.NewVersion(fixture.pool, fixture.epoch),
@@ -842,7 +842,7 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 				),
 				pendingMaps,
 			),
-		),
+		}),
 	)
 }
 
@@ -865,10 +865,10 @@ func newCustomPlainEntry(
 	}
 
 	return domain.NewPlainEntry(
-		domain.NewDirEntry(
-			"plain",
-			[]byte(idx),
-			domain.NewDirPayload(
+		domain.NewDirEntry(domain.DirEntryParams{
+			Kind:  "plain",
+			Index: []byte(idx),
+			Payload: domain.NewDirPayload(
 				domain.NewKey(name, instance),
 				domain.NewDirVersionInfo(
 					domain.NewVersion(pool, epoch),
@@ -888,7 +888,7 @@ func newCustomPlainEntry(
 				),
 				pendingMaps,
 			),
-		),
+		}),
 	)
 }
 

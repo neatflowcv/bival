@@ -1,16 +1,22 @@
 package domain
 
+type DirEntryParams struct {
+	Kind    string
+	Index   []byte
+	Payload *DirPayload
+}
+
 type DirEntry struct {
 	kind    string
 	index   []byte
 	payload *DirPayload
 }
 
-func NewDirEntry(kind string, index []byte, payload *DirPayload) *DirEntry {
+func NewDirEntry(p DirEntryParams) *DirEntry {
 	return &DirEntry{
-		kind:    kind,
-		index:   index,
-		payload: payload,
+		kind:    p.Kind,
+		index:   p.Index,
+		payload: p.Payload,
 	}
 }
 

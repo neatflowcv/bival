@@ -51,10 +51,10 @@ func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
 		return nil, fmt.Errorf("parse mtime %q: %w", record.Entry.Meta.MTime, err)
 	}
 
-	return domain.NewDirEntry(
-		record.Type,
-		[]byte(record.Idx),
-		domain.NewDirPayload(
+	return domain.NewDirEntry(domain.DirEntryParams{
+		Kind:  record.Type,
+		Index: []byte(record.Idx),
+		Payload: domain.NewDirPayload(
 			domain.NewKey(record.Entry.Name, record.Entry.Instance),
 			domain.NewDirVersionInfo(
 				domain.NewVersion(record.Entry.Ver.Pool, record.Entry.Ver.Epoch),
@@ -79,7 +79,7 @@ func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
 			),
 			newPendingMaps(record),
 		),
-	), nil
+	}), nil
 }
 
 func parseMTime(value string) (time.Time, error) {
