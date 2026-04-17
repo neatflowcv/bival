@@ -781,7 +781,8 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 			Name:     fixture.name,
 			Instance: fixture.instance,
 			VersionInfo: domain.NewDirVersionInfo(
-				domain.NewVersion(fixture.pool, fixture.epoch),
+				fixture.pool,
+				fixture.epoch,
 				fixture.versionedEpoch,
 			),
 			State: domain.NewDirState(
@@ -819,7 +820,8 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 			Name:     fixture.name,
 			Instance: fixture.instance,
 			VersionInfo: domain.NewDirVersionInfo(
-				domain.NewVersion(fixture.pool, fixture.epoch),
+				fixture.pool,
+				fixture.epoch,
 				fixture.versionedEpoch,
 			),
 			State: domain.NewDirState(
@@ -869,7 +871,8 @@ func newCustomPlainEntry(
 			Name:     name,
 			Instance: instance,
 			VersionInfo: domain.NewDirVersionInfo(
-				domain.NewVersion(pool, epoch),
+				pool,
+				epoch,
 				0,
 			),
 			State: domain.NewDirState(

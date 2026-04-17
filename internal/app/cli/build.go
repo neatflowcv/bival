@@ -57,7 +57,8 @@ func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
 		Name:     record.Entry.Name,
 		Instance: record.Entry.Instance,
 		VersionInfo: domain.NewDirVersionInfo(
-			domain.NewVersion(record.Entry.Ver.Pool, record.Entry.Ver.Epoch),
+			record.Entry.Ver.Pool,
+			record.Entry.Ver.Epoch,
 			record.Entry.VersionedEpoch,
 		),
 		State: domain.NewDirState(

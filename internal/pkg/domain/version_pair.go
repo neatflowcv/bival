@@ -18,17 +18,9 @@ func equalVersionInfo(left *DirVersionInfo, right *DirVersionInfo) bool {
 		return left == right
 	}
 
-	return equalVersion(left.version, right.version) &&
-		left.versionedEpoch == right.versionedEpoch
-}
-
-func equalVersion(left *Version, right *Version) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
-
 	return left.pool == right.pool &&
-		left.epoch == right.epoch
+		left.epoch == right.epoch &&
+		left.versionedEpoch == right.versionedEpoch
 }
 
 func equalStateWithoutTag(left *DirState, right *DirState) bool {

@@ -33,11 +33,11 @@ func (e *InstanceEntry) Instance() string {
 }
 
 func (e *InstanceEntry) VersionPool() int {
-	return e.versionInfo.Version().Pool()
+	return e.versionInfo.Pool()
 }
 
 func (e *InstanceEntry) VersionEpoch() int {
-	return e.versionInfo.Version().Epoch()
+	return e.versionInfo.Epoch()
 }
 
 func (e *InstanceEntry) VersionedEpoch() int {

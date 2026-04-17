@@ -39,11 +39,11 @@ func (e *PlainEntry) Instance() string {
 }
 
 func (e *PlainEntry) VersionPool() int {
-	return e.versionInfo.Version().Pool()
+	return e.versionInfo.Pool()
 }
 
 func (e *PlainEntry) VersionEpoch() int {
-	return e.versionInfo.Version().Epoch()
+	return e.versionInfo.Epoch()
 }
 
 func (e *PlainEntry) Exists() bool {

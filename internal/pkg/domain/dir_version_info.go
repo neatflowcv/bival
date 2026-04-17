@@ -1,21 +1,31 @@
 package domain
 
 type DirVersionInfo struct {
-	version        *Version
+	pool           int
+	epoch          int
 	versionedEpoch int
 }
 
-func NewDirVersionInfo(version *Version, versionedEpoch int) *DirVersionInfo {
+func NewDirVersionInfo(pool int, epoch int, versionedEpoch int) *DirVersionInfo {
 	return &DirVersionInfo{
-		version:        version,
+		pool:           pool,
+		epoch:          epoch,
 		versionedEpoch: versionedEpoch,
 	}
 }
 
-func (i *DirVersionInfo) Version() *Version {
-	return i.version
+func (i *DirVersionInfo) Pool() int {
+	return i.pool
+}
+
+func (i *DirVersionInfo) Epoch() int {
+	return i.epoch
 }
 
 func (i *DirVersionInfo) VersionedEpoch() int {
 	return i.versionedEpoch
+}
+
+func (i *DirVersionInfo) IsMissing() bool {
+	return i.pool == -1 && i.epoch == 0
 }
