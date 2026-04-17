@@ -9,7 +9,7 @@ func IsVersionPair(plain *PlainEntry, instance *InstanceEntry) bool {
 		plain.instance == instance.instance &&
 		equalEntryVersion(plain, instance) &&
 		equalEntryState(plain, instance) &&
-		equalMeta(plain.meta, instance.meta) &&
+		equalEntryMeta(plain, instance) &&
 		equalPendingMaps(plain.pendingMaps, instance.pendingMaps)
 }
 
@@ -25,37 +25,17 @@ func equalEntryState(plain *PlainEntry, instance *InstanceEntry) bool {
 		plain.flags == instance.flags
 }
 
-func equalMeta(left *Meta, right *Meta) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
-
-	return equalMetaObject(left, right) &&
-		equalMetaAudit(left, right) &&
-		equalMetaContent(left, right) &&
-		equalMetaOwner(left, right)
-}
-
-func equalMetaObject(left *Meta, right *Meta) bool {
-	return left.category == right.category &&
-		left.size == right.size &&
-		left.accountedSize == right.accountedSize &&
-		left.appendable == right.appendable
-}
-
-func equalMetaAudit(left *Meta, right *Meta) bool {
-	return left.mTime.Equal(right.mTime) &&
-		left.eTag == right.eTag
-}
-
-func equalMetaContent(left *Meta, right *Meta) bool {
-	return left.storageClass == right.storageClass &&
-		left.contentType == right.contentType
-}
-
-func equalMetaOwner(left *Meta, right *Meta) bool {
-	return left.ownerUserID == right.ownerUserID &&
-		left.ownerDisplayName == right.ownerDisplayName
+func equalEntryMeta(plain *PlainEntry, instance *InstanceEntry) bool {
+	return plain.category == instance.category &&
+		plain.size == instance.size &&
+		plain.accountedSize == instance.accountedSize &&
+		plain.appendable == instance.appendable &&
+		plain.mTime.Equal(instance.mTime) &&
+		plain.eTag == instance.eTag &&
+		plain.storageClass == instance.storageClass &&
+		plain.contentType == instance.contentType &&
+		plain.ownerUserID == instance.ownerUserID &&
+		plain.ownerDisplayName == instance.ownerDisplayName
 }
 
 func equalPendingMaps(left []*PendingMap, right []*PendingMap) bool {

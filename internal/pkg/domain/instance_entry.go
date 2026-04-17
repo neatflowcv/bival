@@ -1,36 +1,56 @@
 package domain
 
+import "time"
+
 type InstanceEntry struct {
-	kind        string
-	index       []byte
-	name        string
-	instance    string
-	pool        int
-	epoch       int
-	vEpoch      int
-	locator     string
-	exists      bool
-	tag         string
-	flags       int
-	meta        *Meta
-	pendingMaps []*PendingMap
+	kind             string
+	index            []byte
+	name             string
+	instance         string
+	pool             int
+	epoch            int
+	vEpoch           int
+	locator          string
+	exists           bool
+	tag              string
+	flags            int
+	category         int
+	size             int64
+	accountedSize    int64
+	appendable       bool
+	mTime            time.Time
+	eTag             string
+	storageClass     string
+	contentType      string
+	ownerUserID      string
+	ownerDisplayName string
+	pendingMaps      []*PendingMap
 }
 
 func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
 	return &InstanceEntry{
-		kind:        p.Kind,
-		index:       p.Index,
-		name:        p.Name,
-		instance:    p.Instance,
-		pool:        p.Pool,
-		epoch:       p.Epoch,
-		vEpoch:      p.VEpoch,
-		locator:     p.Locator,
-		exists:      p.Exists,
-		tag:         p.Tag,
-		flags:       p.Flags,
-		meta:        p.Meta,
-		pendingMaps: p.PendingMaps,
+		kind:             p.Kind,
+		index:            p.Index,
+		name:             p.Name,
+		instance:         p.Instance,
+		pool:             p.Pool,
+		epoch:            p.Epoch,
+		vEpoch:           p.VEpoch,
+		locator:          p.Locator,
+		exists:           p.Exists,
+		tag:              p.Tag,
+		flags:            p.Flags,
+		category:         p.Category,
+		size:             p.Size,
+		accountedSize:    p.AccountedSize,
+		appendable:       p.Appendable,
+		mTime:            p.MTime,
+		eTag:             p.ETag,
+		storageClass:     p.StorageClass,
+		contentType:      p.ContentType,
+		ownerUserID:      p.OwnerUserID,
+		ownerDisplayName: p.OwnerDisplayName,
+		pendingMaps:      p.PendingMaps,
 	}
 }
 
@@ -69,7 +89,16 @@ func (e *InstanceEntry) Payload() *DirPayload {
 		e.exists,
 		e.tag,
 		e.flags,
-		e.meta,
+		e.category,
+		e.size,
+		e.accountedSize,
+		e.appendable,
+		e.mTime,
+		e.eTag,
+		e.storageClass,
+		e.contentType,
+		e.ownerUserID,
+		e.ownerDisplayName,
 		e.pendingMaps,
 	)
 }

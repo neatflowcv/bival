@@ -57,17 +57,13 @@ func isValidVersionedHeadPlainEntry(entry *domain.PlainEntry) bool {
 	return hasHeadIdentity(entry) &&
 		hasHeadVersion(payload) &&
 		hasHeadState(payload) &&
-		hasHeadMetaParts(payload.Meta()) &&
-		payload.Meta().IsDefault()
+		hasHeadMetaParts(payload) &&
+		payload.IsMetaDefault()
 }
 
 func headPlainPayload(entry *domain.PlainEntry) (*domain.DirPayload, bool) {
 	payload := entry.Payload()
 	if payload == nil || payload.Name() == "" {
-		return nil, false
-	}
-
-	if payload.Meta() == nil {
 		return nil, false
 	}
 
@@ -91,8 +87,8 @@ func hasHeadState(payload *domain.DirPayload) bool {
 		len(payload.PendingMaps()) == 0
 }
 
-func hasHeadMetaParts(meta *domain.Meta) bool {
-	return meta.HasParts()
+func hasHeadMetaParts(payload *domain.DirPayload) bool {
+	return payload.HasMetaParts()
 }
 
 func hasValidVersionPairs(plainEntries []*domain.PlainEntry, instanceEntries []*domain.InstanceEntry) bool {
