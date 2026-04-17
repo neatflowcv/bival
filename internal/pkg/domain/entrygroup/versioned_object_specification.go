@@ -80,8 +80,19 @@ func hasValidVersionPairs(plainEntries []*domain.PlainEntry, instanceEntries []*
 func buildPlainEntryMap(entries []*domain.PlainEntry) (map[versionedEntryKey]*domain.PlainEntry, bool) {
 	entriesByKey := make(map[versionedEntryKey]*domain.PlainEntry, len(entries))
 	for _, entry := range entries {
-		key, ok := versionedPlainEntryKey(entry)
-		if !ok || hasPlainKey(entriesByKey, key) {
+		if entry.Name() == "" {
+			return nil, false
+		}
+
+		key := versionedEntryKey{
+			name:     entry.Name(),
+			instance: entry.Instance(),
+			pool:     entry.VersionPool(),
+			epoch:    entry.VersionEpoch(),
+			vEpoch:   entry.VersionedEpoch(),
+		}
+
+		if hasPlainKey(entriesByKey, key) {
 			return nil, false
 		}
 
@@ -126,43 +137,6 @@ func hasInstanceKey(entries map[versionedEntryKey]*domain.InstanceEntry, key ver
 	_, exists := entries[key]
 
 	return exists
-}
-
-func versionedPlainEntryKey(entry *domain.PlainEntry) (versionedEntryKey, bool) {
-	return entryKeyFromPayload(dirPayloadFromPlainEntry(entry))
-}
-
-func dirPayloadFromPlainEntry(entry *domain.PlainEntry) (*domain.DirPayload, bool) {
-	payload := entry.Payload()
-	if payload == nil {
-		return nil, false
-	}
-
-	return payload, true
-}
-
-func entryKeyFromPayload(payload *domain.DirPayload, ok bool) (versionedEntryKey, bool) {
-	if !ok || payload == nil || payload.Name() == "" {
-		return invalidVersionedEntryKey(), false
-	}
-
-	return versionedEntryKey{
-		name:     payload.Name(),
-		instance: payload.Instance(),
-		pool:     payload.Pool(),
-		epoch:    payload.Epoch(),
-		vEpoch:   payload.VersionedEpoch(),
-	}, true
-}
-
-func invalidVersionedEntryKey() versionedEntryKey {
-	return versionedEntryKey{
-		name:     "",
-		instance: "",
-		pool:     0,
-		epoch:    0,
-		vEpoch:   0,
-	}
 }
 
 func hasValidOLHReference(olhEntries []*domain.OLH, instanceEntries []*domain.InstanceEntry) bool {

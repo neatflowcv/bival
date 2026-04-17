@@ -74,6 +74,10 @@ func (e *PlainEntry) VersionEpoch() int {
 	return e.epoch
 }
 
+func (e *PlainEntry) VersionedEpoch() int {
+	return e.vEpoch
+}
+
 func (e *PlainEntry) Exists() bool {
 	return e.exists
 }
@@ -103,31 +107,6 @@ func (e *PlainEntry) IsPlaceholder() bool {
 		e.hasPlaceholderVersion() &&
 		e.hasPlaceholderState() &&
 		e.hasPlaceholderMeta()
-}
-
-func (e *PlainEntry) Payload() *DirPayload {
-	return NewDirPayload(
-		e.name,
-		e.instance,
-		e.pool,
-		e.epoch,
-		e.vEpoch,
-		e.locator,
-		e.exists,
-		e.tag,
-		e.flags,
-		e.category,
-		e.size,
-		e.accountedSize,
-		e.appendable,
-		e.mTime,
-		e.eTag,
-		e.storageClass,
-		e.contentType,
-		e.ownerUserID,
-		e.ownerDisplayName,
-		e.pendingMaps,
-	)
 }
 
 func (e *PlainEntry) hasPlaceholderIdentity() bool {
