@@ -30,6 +30,18 @@ func (e *InstanceEntry) EntryKey() *Key {
 	return e.key
 }
 
+func (e *InstanceEntry) VersionPool() int {
+	return e.versionInfo.Version().Pool()
+}
+
+func (e *InstanceEntry) VersionEpoch() int {
+	return e.versionInfo.Version().Epoch()
+}
+
+func (e *InstanceEntry) VersionedEpoch() int {
+	return e.versionInfo.VersionedEpoch()
+}
+
 func (e *InstanceEntry) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }

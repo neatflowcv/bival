@@ -145,11 +145,6 @@ func buildPlainEntryMap(entries []*domain.PlainEntry) (map[versionedEntryKey]*do
 func buildInstanceEntryMap(entries []*domain.InstanceEntry) (map[versionedEntryKey]*domain.InstanceEntry, bool) {
 	entriesByKey := make(map[versionedEntryKey]*domain.InstanceEntry, len(entries))
 	for _, entry := range entries {
-		payload, ok := dirPayloadFromInstanceEntry(entry)
-		if !ok || payload.VersionInfo() == nil || payload.VersionInfo().Version() == nil {
-			return nil, false
-		}
-
 		entryKey := entry.EntryKey()
 		if entryKey == nil || entryKey.Name() == "" {
 			return nil, false
@@ -158,9 +153,9 @@ func buildInstanceEntryMap(entries []*domain.InstanceEntry) (map[versionedEntryK
 		key := versionedEntryKey{
 			name:     entryKey.Name(),
 			instance: entryKey.Instance(),
-			pool:     payload.VersionInfo().Version().Pool(),
-			epoch:    payload.VersionInfo().Version().Epoch(),
-			vEpoch:   payload.VersionInfo().VersionedEpoch(),
+			pool:     entry.VersionPool(),
+			epoch:    entry.VersionEpoch(),
+			vEpoch:   entry.VersionedEpoch(),
 		}
 
 		if hasInstanceKey(entriesByKey, key) {
