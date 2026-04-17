@@ -25,11 +25,13 @@
 golangci-lint fmt
 golangci-lint run --fix
 golangci-lint fmt
+go build ./...
 ```
 
 ## 완료 조건
 
 - 위 순서를 실제로 실행해 모두 통과해야 합니다.
+- `go build ./...`까지 실제로 실행해 통과해야 합니다.
 - Go 테스트가 있는 변경이라면
   [docs/test-guide.md](docs/test-guide.md)의 원칙에 따라
   `go test ./...`까지 확인합니다.
