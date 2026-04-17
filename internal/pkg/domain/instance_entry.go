@@ -1,33 +1,45 @@
 package domain
 
 type InstanceEntry struct {
-	entry *DirEntry
+	kind        string
+	index       []byte
+	key         *Key
+	versionInfo *DirVersionInfo
+	state       *DirState
+	meta        *Meta
+	pendingMaps []*PendingMap
 }
 
-func NewInstanceEntry(entry *DirEntry) *InstanceEntry {
+func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
 	return &InstanceEntry{
-		entry: entry,
+		kind:        p.Kind,
+		index:       p.Index,
+		key:         p.Key,
+		versionInfo: p.VersionInfo,
+		state:       p.State,
+		meta:        p.Meta,
+		pendingMaps: p.PendingMaps,
 	}
 }
 
 func (e *InstanceEntry) Name() string {
-	return e.entry.key.name
+	return e.key.name
 }
 
 func (e *InstanceEntry) HasPendingMap() bool {
-	return e.entry.hasPendingMap()
+	return len(e.pendingMaps) > 0
 }
 
 func (e *InstanceEntry) Payload() *DirPayload {
-	if e == nil || e.entry == nil {
+	if e == nil {
 		return nil
 	}
 
 	return NewDirPayload(
-		e.entry.key,
-		e.entry.versionInfo,
-		e.entry.state,
-		e.entry.meta,
-		e.entry.pendingMaps,
+		e.key,
+		e.versionInfo,
+		e.state,
+		e.meta,
+		e.pendingMaps,
 	)
 }

@@ -14,19 +14,19 @@ var errUnsupportedRecordType = errors.New("unsupported record type")
 func buildEntry(record *bilist.Record) (any, error) {
 	switch record.Type {
 	case "instance":
-		entry, err := newDirEntry(record)
+		params, err := newDirEntryParams(record)
 		if err != nil {
 			return nil, err
 		}
 
-		return domain.NewInstanceEntry(entry), nil
+		return domain.NewInstanceEntry(params), nil
 	case "plain":
-		entry, err := newDirEntry(record)
+		params, err := newDirEntryParams(record)
 		if err != nil {
 			return nil, err
 		}
 
-		return domain.NewPlainEntry(entry), nil
+		return domain.NewPlainEntry(domain.NewDirEntry(params)), nil
 	case "olh":
 		return domain.NewOLH(domain.OLHParams{
 			Kind:           record.Type,
@@ -45,13 +45,13 @@ func buildEntry(record *bilist.Record) (any, error) {
 	}
 }
 
-func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
+func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
 	mTime, err := parseMTime(record.Entry.Meta.MTime)
 	if err != nil {
-		return nil, fmt.Errorf("parse mtime %q: %w", record.Entry.Meta.MTime, err)
+		return domain.DirEntryParams{}, fmt.Errorf("parse mtime %q: %w", record.Entry.Meta.MTime, err)
 	}
 
-	return domain.NewDirEntry(domain.DirEntryParams{
+	return domain.DirEntryParams{
 		Kind:  record.Type,
 		Index: []byte(record.Idx),
 		Key:   domain.NewKey(record.Entry.Name, record.Entry.Instance),
@@ -77,7 +77,7 @@ func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
 			domain.NewOwner(record.Entry.Meta.Owner, record.Entry.Meta.OwnerDisplayName),
 		),
 		PendingMaps: newPendingMaps(record),
-	}), nil
+	}, nil
 }
 
 func parseMTime(value string) (time.Time, error) {

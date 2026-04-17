@@ -812,7 +812,7 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 	}
 
 	return domain.NewInstanceEntry(
-		domain.NewDirEntry(domain.DirEntryParams{
+		domain.DirEntryParams{
 			Kind:  "instance",
 			Index: []byte(versionedInstanceIndex(fixture.instance)),
 			Key:   domain.NewKey(fixture.name, fixture.instance),
@@ -838,7 +838,7 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 				domain.NewOwner(fixture.owner, fixture.ownerDisplay),
 			),
 			PendingMaps: pendingMaps,
-		}),
+		},
 	)
 }
 
