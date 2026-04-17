@@ -5,7 +5,9 @@ type DirEntryParams struct {
 	Index       []byte
 	Name        string
 	Instance    string
-	VersionInfo *DirVersionInfo
+	Pool        int
+	Epoch       int
+	VEpoch      int
 	Locator     string
 	Exists      bool
 	Tag         string

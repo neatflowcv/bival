@@ -7,22 +7,22 @@ func IsVersionPair(plain *PlainEntry, instance *InstanceEntry) bool {
 
 	return plain.name == instance.name &&
 		plain.instance == instance.instance &&
-		equalVersionInfo(plain.versionInfo, instance.versionInfo) &&
-		plain.locator == instance.locator &&
-		plain.exists == instance.exists &&
-		plain.flags == instance.flags &&
+		equalEntryVersion(plain, instance) &&
+		equalEntryState(plain, instance) &&
 		equalMeta(plain.meta, instance.meta) &&
 		equalPendingMaps(plain.pendingMaps, instance.pendingMaps)
 }
 
-func equalVersionInfo(left *DirVersionInfo, right *DirVersionInfo) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
+func equalEntryVersion(plain *PlainEntry, instance *InstanceEntry) bool {
+	return plain.pool == instance.pool &&
+		plain.epoch == instance.epoch &&
+		plain.vEpoch == instance.vEpoch
+}
 
-	return left.pool == right.pool &&
-		left.epoch == right.epoch &&
-		left.versionedEpoch == right.versionedEpoch
+func equalEntryState(plain *PlainEntry, instance *InstanceEntry) bool {
+	return plain.locator == instance.locator &&
+		plain.exists == instance.exists &&
+		plain.flags == instance.flags
 }
 
 func equalMeta(left *Meta, right *Meta) bool {

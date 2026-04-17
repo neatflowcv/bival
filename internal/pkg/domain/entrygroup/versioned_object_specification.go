@@ -63,7 +63,7 @@ func isValidVersionedHeadPlainEntry(entry *domain.PlainEntry) bool {
 
 func headPlainPayload(entry *domain.PlainEntry) (*domain.DirPayload, bool) {
 	payload := entry.Payload()
-	if payload == nil || payload.Name() == "" || payload.VersionInfo() == nil {
+	if payload == nil || payload.Name() == "" {
 		return nil, false
 	}
 
@@ -79,8 +79,8 @@ func hasHeadIdentity(entry *domain.PlainEntry) bool {
 }
 
 func hasHeadVersion(payload *domain.DirPayload) bool {
-	return payload.VersionInfo().IsMissing() &&
-		payload.VersionInfo().VersionedEpoch() == 0
+	return payload.IsVersionMissing() &&
+		payload.VersionedEpoch() == 0
 }
 
 func hasHeadState(payload *domain.DirPayload) bool {
@@ -193,16 +193,12 @@ func entryKeyFromPayload(payload *domain.DirPayload, ok bool) (versionedEntryKey
 		return invalidVersionedEntryKey(), false
 	}
 
-	if payload.VersionInfo() == nil {
-		return invalidVersionedEntryKey(), false
-	}
-
 	return versionedEntryKey{
 		name:     payload.Name(),
 		instance: payload.Instance(),
-		pool:     payload.VersionInfo().Pool(),
-		epoch:    payload.VersionInfo().Epoch(),
-		vEpoch:   payload.VersionInfo().VersionedEpoch(),
+		pool:     payload.Pool(),
+		epoch:    payload.Epoch(),
+		vEpoch:   payload.VersionedEpoch(),
 	}, true
 }
 

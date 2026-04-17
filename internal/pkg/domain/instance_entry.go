@@ -5,7 +5,9 @@ type InstanceEntry struct {
 	index       []byte
 	name        string
 	instance    string
-	versionInfo *DirVersionInfo
+	pool        int
+	epoch       int
+	vEpoch      int
 	locator     string
 	exists      bool
 	tag         string
@@ -20,7 +22,9 @@ func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
 		index:       p.Index,
 		name:        p.Name,
 		instance:    p.Instance,
-		versionInfo: p.VersionInfo,
+		pool:        p.Pool,
+		epoch:       p.Epoch,
+		vEpoch:      p.VEpoch,
 		locator:     p.Locator,
 		exists:      p.Exists,
 		tag:         p.Tag,
@@ -39,15 +43,15 @@ func (e *InstanceEntry) Instance() string {
 }
 
 func (e *InstanceEntry) VersionPool() int {
-	return e.versionInfo.Pool()
+	return e.pool
 }
 
 func (e *InstanceEntry) VersionEpoch() int {
-	return e.versionInfo.Epoch()
+	return e.epoch
 }
 
 func (e *InstanceEntry) VersionedEpoch() int {
-	return e.versionInfo.VersionedEpoch()
+	return e.vEpoch
 }
 
 func (e *InstanceEntry) HasPendingMap() bool {
@@ -58,7 +62,9 @@ func (e *InstanceEntry) Payload() *DirPayload {
 	return NewDirPayload(
 		e.name,
 		e.instance,
-		e.versionInfo,
+		e.pool,
+		e.epoch,
+		e.vEpoch,
 		e.locator,
 		e.exists,
 		e.tag,

@@ -3,7 +3,9 @@ package domain
 type DirPayload struct {
 	name        string
 	instance    string
-	versionInfo *DirVersionInfo
+	pool        int
+	epoch       int
+	vEpoch      int
 	locator     string
 	exists      bool
 	tag         string
@@ -15,7 +17,9 @@ type DirPayload struct {
 func NewDirPayload(
 	name string,
 	instance string,
-	versionInfo *DirVersionInfo,
+	pool int,
+	epoch int,
+	vEpoch int,
 	locator string,
 	exists bool,
 	tag string,
@@ -26,7 +30,9 @@ func NewDirPayload(
 	return &DirPayload{
 		name:        name,
 		instance:    instance,
-		versionInfo: versionInfo,
+		pool:        pool,
+		epoch:       epoch,
+		vEpoch:      vEpoch,
 		locator:     locator,
 		exists:      exists,
 		tag:         tag,
@@ -52,12 +58,36 @@ func (p *DirPayload) Instance() string {
 	return p.instance
 }
 
-func (p *DirPayload) VersionInfo() *DirVersionInfo {
+func (p *DirPayload) Pool() int {
 	if p == nil {
-		return nil
+		return 0
 	}
 
-	return p.versionInfo
+	return p.pool
+}
+
+func (p *DirPayload) Epoch() int {
+	if p == nil {
+		return 0
+	}
+
+	return p.epoch
+}
+
+func (p *DirPayload) VersionedEpoch() int {
+	if p == nil {
+		return 0
+	}
+
+	return p.vEpoch
+}
+
+func (p *DirPayload) IsVersionMissing() bool {
+	if p == nil {
+		return false
+	}
+
+	return p.pool == -1 && p.epoch == 0
 }
 
 func (p *DirPayload) Locator() string {

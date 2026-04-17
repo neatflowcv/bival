@@ -7,7 +7,9 @@ type PlainEntry struct {
 	index       []byte
 	name        string
 	instance    string
-	versionInfo *DirVersionInfo
+	pool        int
+	epoch       int
+	vEpoch      int
 	locator     string
 	exists      bool
 	tag         string
@@ -22,7 +24,9 @@ func NewPlainEntry(p DirEntryParams) *PlainEntry {
 		index:       p.Index,
 		name:        p.Name,
 		instance:    p.Instance,
-		versionInfo: p.VersionInfo,
+		pool:        p.Pool,
+		epoch:       p.Epoch,
+		vEpoch:      p.VEpoch,
 		locator:     p.Locator,
 		exists:      p.Exists,
 		tag:         p.Tag,
@@ -45,11 +49,11 @@ func (e *PlainEntry) Instance() string {
 }
 
 func (e *PlainEntry) VersionPool() int {
-	return e.versionInfo.Pool()
+	return e.pool
 }
 
 func (e *PlainEntry) VersionEpoch() int {
-	return e.versionInfo.Epoch()
+	return e.epoch
 }
 
 func (e *PlainEntry) Exists() bool {
@@ -80,7 +84,9 @@ func (e *PlainEntry) Payload() *DirPayload {
 	return NewDirPayload(
 		e.name,
 		e.instance,
-		e.versionInfo,
+		e.pool,
+		e.epoch,
+		e.vEpoch,
 		e.locator,
 		e.exists,
 		e.tag,
