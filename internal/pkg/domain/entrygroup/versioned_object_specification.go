@@ -1,10 +1,6 @@
 package entrygroup
 
-import (
-	"reflect"
-
-	"github.com/neatflowcv/bival/internal/pkg/domain"
-)
+import "github.com/neatflowcv/bival/internal/pkg/domain"
 
 type versionedObjectSpecification struct{}
 
@@ -120,7 +116,7 @@ func hasValidVersionPairs(plainEntries []*domain.PlainEntry, instanceEntries []*
 			return false
 		}
 
-		if !hasEquivalentVersionPayload(plainEntry, instanceEntry) {
+		if !domain.IsVersionPair(plainEntry, instanceEntry) {
 			return false
 		}
 	}
@@ -193,15 +189,6 @@ func dirPayloadFromPlainEntry(entry *domain.PlainEntry) (*domain.DirPayload, boo
 	return payload, true
 }
 
-func dirPayloadFromInstanceEntry(entry *domain.InstanceEntry) (*domain.DirPayload, bool) {
-	payload := entry.Payload()
-	if payload == nil {
-		return nil, false
-	}
-
-	return payload, true
-}
-
 func entryKeyFromPayload(payload *domain.DirPayload, ok bool) (versionedEntryKey, bool) {
 	if !ok || payload == nil || payload.Key() == nil {
 		return invalidVersionedEntryKey(), false
@@ -228,43 +215,6 @@ func invalidVersionedEntryKey() versionedEntryKey {
 		epoch:    0,
 		vEpoch:   0,
 	}
-}
-
-func hasEquivalentVersionPayload(plainEntry *domain.PlainEntry, instanceEntry *domain.InstanceEntry) bool {
-	plainPayload, plainOK := dirPayloadFromPlainEntry(plainEntry)
-
-	instancePayload, instanceOK := dirPayloadFromInstanceEntry(instanceEntry)
-	if !plainOK || !instanceOK {
-		return false
-	}
-
-	return reflect.DeepEqual(
-		payloadWithoutTag(plainPayload),
-		payloadWithoutTag(instancePayload),
-	)
-}
-
-func payloadWithoutTag(payload *domain.DirPayload) *domain.DirPayload {
-	if payload == nil ||
-		payload.Key() == nil ||
-		payload.VersionInfo() == nil ||
-		payload.State() == nil ||
-		payload.Meta() == nil {
-		return nil
-	}
-
-	return domain.NewDirPayload(
-		payload.Key(),
-		payload.VersionInfo(),
-		domain.NewDirState(
-			payload.State().Locator(),
-			payload.State().Exists(),
-			"",
-			payload.State().Flags(),
-		),
-		payload.Meta(),
-		payload.PendingMaps(),
-	)
 }
 
 func hasValidOLHReference(olhEntries []*domain.OLH, instanceEntries []*domain.InstanceEntry) bool {
