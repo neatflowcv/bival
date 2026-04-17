@@ -207,7 +207,7 @@ func TestAnalyzeFileHandlesZeroFloatMTime(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
+	require.Empty(t, buf.String())
 }
 
 func versionedHeadRecordMap(name string) map[string]any {

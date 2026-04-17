@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 type DirEntryParams struct {
 	Kind             string
 	Index            []byte
@@ -18,7 +16,7 @@ type DirEntryParams struct {
 	Size             int64
 	AccountedSize    int64
 	Appendable       bool
-	MTime            time.Time
+	MTime            string
 	ETag             string
 	StorageClass     string
 	ContentType      string

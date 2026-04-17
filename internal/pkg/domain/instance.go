@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 type Instance struct {
 	kind             string
 	index            []byte
@@ -18,7 +16,7 @@ type Instance struct {
 	size             int64
 	accountedSize    int64
 	appendable       bool
-	mTime            time.Time
+	mTime            string
 	eTag             string
 	storageClass     string
 	contentType      string

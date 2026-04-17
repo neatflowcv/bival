@@ -243,47 +243,20 @@ func TestBuildEntryPreservesPendingPresence(t *testing.T) {
 	require.True(t, olhTyped.HasPendingLog())
 }
 
-func TestBuildEntryRejectsInvalidMTime(t *testing.T) {
+func TestBuildEntryPreservesInvalidMTime(t *testing.T) {
 	t.Parallel()
 
-	_, err := buildEntry(&bilist.Record{
-		Type: "plain",
-		Idx:  "alpha",
-		Entry: bilist.Entry{
-			Name:           "alpha",
-			Instance:       "",
-			Ver:            bilist.Version{Pool: 1, Epoch: 1},
-			Locator:        "",
-			Exists:         true,
-			Tag:            "tag",
-			Flags:          0,
-			PendingMap:     []json.RawMessage{},
-			VersionedEpoch: 0,
-			Key:            bilist.Key{Name: "", Instance: ""},
-			DeleteMarker:   false,
-			Epoch:          0,
-			PendingLog:     nil,
-			PendingRemoval: false,
-			Meta: bilist.Meta{
-				Category:         0,
-				Size:             0,
-				MTime:            "invalid-mtime",
-				ETag:             "etag",
-				StorageClass:     "",
-				Owner:            "",
-				OwnerDisplayName: "",
-				ContentType:      "",
-				AccountedSize:    0,
-				UserData:         "",
-				Appendable:       false,
-			},
-		},
-	})
-	require.ErrorContains(t, err, "parse mtime")
+	assertBuiltPlainMTime(t, "invalid-mtime", "invalid-mtime")
 }
 
-func TestBuildEntryAcceptsZeroFloatMTime(t *testing.T) {
+func TestBuildEntryPreservesZeroFloatMTime(t *testing.T) {
 	t.Parallel()
+
+	assertBuiltPlainMTime(t, "0.000000", "0.000000")
+}
+
+func assertBuiltPlainMTime(t *testing.T, value string, want string) {
+	t.Helper()
 
 	entry, err := buildEntry(&bilist.Record{
 		Type: "plain",
@@ -306,7 +279,7 @@ func TestBuildEntryAcceptsZeroFloatMTime(t *testing.T) {
 			Meta: bilist.Meta{
 				Category:         0,
 				Size:             0,
-				MTime:            "0.000000",
+				MTime:            value,
 				ETag:             "etag",
 				StorageClass:     "",
 				Owner:            "",
@@ -322,7 +295,7 @@ func TestBuildEntryAcceptsZeroFloatMTime(t *testing.T) {
 
 	plainTyped, isPlain := entry.(*domain.Plain)
 	require.True(t, isPlain)
-	require.True(t, plainTyped.MTime().IsZero())
+	require.Equal(t, want, plainTyped.MTime())
 }
 
 func TestAnalyzeFileRejectsUnsupportedType(t *testing.T) {

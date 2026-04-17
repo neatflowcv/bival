@@ -3,7 +3,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
@@ -14,17 +13,11 @@ var errUnsupportedRecordType = errors.New("unsupported record type")
 func buildEntry(record *bilist.Record) (any, error) {
 	switch record.Type {
 	case "instance":
-		params, err := newDirEntryParams(record)
-		if err != nil {
-			return nil, err
-		}
+		params := newDirEntryParams(record)
 
 		return domain.NewInstance(params), nil
 	case "plain":
-		params, err := newDirEntryParams(record)
-		if err != nil {
-			return nil, err
-		}
+		params := newDirEntryParams(record)
 
 		return domain.NewPlain(params), nil
 	case "olh":
@@ -45,12 +38,7 @@ func buildEntry(record *bilist.Record) (any, error) {
 	}
 }
 
-func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
-	mTime, err := parseMTime(record.Entry.Meta.MTime)
-	if err != nil {
-		return domain.DirEntryParams{}, fmt.Errorf("parse mtime %q: %w", record.Entry.Meta.MTime, err)
-	}
-
+func newDirEntryParams(record *bilist.Record) domain.DirEntryParams {
 	return domain.DirEntryParams{
 		Kind:             record.Type,
 		Index:            []byte(record.Idx),
@@ -67,27 +55,14 @@ func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
 		Size:             record.Entry.Meta.Size,
 		AccountedSize:    record.Entry.Meta.AccountedSize,
 		Appendable:       record.Entry.Meta.Appendable,
-		MTime:            mTime,
+		MTime:            record.Entry.Meta.MTime,
 		ETag:             record.Entry.Meta.ETag,
 		StorageClass:     record.Entry.Meta.StorageClass,
 		ContentType:      record.Entry.Meta.ContentType,
 		OwnerUserID:      record.Entry.Meta.Owner,
 		OwnerDisplayName: record.Entry.Meta.OwnerDisplayName,
 		PendingMaps:      newPendingMaps(record),
-	}, nil
-}
-
-func parseMTime(value string) (time.Time, error) {
-	if value == "" || value == "0.000000" {
-		return time.Time{}, nil
 	}
-
-	parsed, err := time.Parse(time.RFC3339Nano, value)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("parse RFC3339Nano: %w", err)
-	}
-
-	return parsed, nil
 }
 
 func newPendingMaps(record *bilist.Record) []*domain.PendingMap {

@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 type Plain struct {
 	kind             string
 	index            []byte
@@ -18,7 +16,7 @@ type Plain struct {
 	size             int64
 	accountedSize    int64
 	appendable       bool
-	mTime            time.Time
+	mTime            string
 	eTag             string
 	storageClass     string
 	contentType      string
@@ -82,7 +80,7 @@ func (e *Plain) Exists() bool {
 	return e.exists
 }
 
-func (e *Plain) MTime() time.Time {
+func (e *Plain) MTime() string {
 	return e.mTime
 }
 
@@ -133,7 +131,7 @@ func (e *Plain) hasPlaceholderMeta() bool {
 		e.size == 0 &&
 		e.accountedSize == 0 &&
 		!e.appendable &&
-		e.mTime.IsZero() &&
+		e.mTime == "0.000000" &&
 		e.eTag == "" &&
 		e.storageClass == "" &&
 		e.contentType == "" &&

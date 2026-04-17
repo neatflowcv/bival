@@ -37,7 +37,7 @@ func hasValidUnversionedIdentity(entry *domain.Plain) bool {
 
 func hasValidUnversionedState(entry *domain.Plain) bool {
 	return entry.Exists() &&
-		!entry.MTime().IsZero() &&
+		entry.MTime() != "" &&
 		entry.ETag() != "" &&
 		entry.Tag() != "" &&
 		entry.Flags() == 0

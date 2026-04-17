@@ -2,7 +2,6 @@ package entrygroup_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 	"github.com/neatflowcv/bival/internal/pkg/domain/entrygroup"
@@ -324,7 +323,7 @@ func versionedHeadFixture() versionedEntryFixture {
 		pool:           -1,
 		epoch:          0,
 		exists:         false,
-		mtime:          time.Time{},
+		mtime:          "0.000000",
 		eTag:           "",
 		tag:            "",
 		flags:          0,
@@ -534,7 +533,7 @@ func TestEntryGroupClassifierRejectsUnversionedWhenMTimeIsZero(t *testing.T) {
 		1,
 		1,
 		true,
-		time.Time{},
+		"",
 		"etag",
 		"tag",
 		0,
@@ -693,7 +692,7 @@ type versionedEntryFixture struct {
 	pool           int
 	epoch          int
 	exists         bool
-	mtime          time.Time
+	mtime          string
 	eTag           string
 	tag            string
 	flags          int
@@ -744,7 +743,7 @@ func newVersionedHeadPlainEntry() *domain.Plain {
 		pool:           -1,
 		epoch:          0,
 		exists:         false,
-		mtime:          time.Time{},
+		mtime:          "0.000000",
 		eTag:           "",
 		tag:            "",
 		flags:          8,
@@ -844,7 +843,7 @@ func newCustomPlainEntry(
 	pool int,
 	epoch int,
 	exists bool,
-	mtime time.Time,
+	mtime string,
 	etag string,
 	tag string,
 	flags int,
@@ -882,16 +881,16 @@ func newCustomPlainEntry(
 	)
 }
 
-func sampleMTime() time.Time {
-	return time.Date(2026, time.March, 6, 3, 34, 11, 918188000, time.UTC)
+func sampleMTime() string {
+	return "2026-03-06T03:34:11.918188Z"
 }
 
-func sampleEarlierMTime() time.Time {
-	return time.Date(2026, time.March, 6, 2, 10, 28, 562296000, time.UTC)
+func sampleEarlierMTime() string {
+	return "2026-03-06T02:10:28.562296Z"
 }
 
-func sampleDeleteMarkerMTime() time.Time {
-	return time.Date(2026, time.March, 6, 4, 11, 7, 657765000, time.UTC)
+func sampleDeleteMarkerMTime() string {
+	return "2026-03-06T04:11:07.657765Z"
 }
 
 func newOLHEntry(name string, pending bool) *domain.OLH {

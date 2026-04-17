@@ -30,7 +30,7 @@ func equalEntryMeta(plain *Plain, instance *Instance) bool {
 		plain.size == instance.size &&
 		plain.accountedSize == instance.accountedSize &&
 		plain.appendable == instance.appendable &&
-		plain.mTime.Equal(instance.mTime) &&
+		plain.mTime == instance.mTime &&
 		plain.eTag == instance.eTag &&
 		plain.storageClass == instance.storageClass &&
 		plain.contentType == instance.contentType &&
