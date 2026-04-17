@@ -2,7 +2,10 @@ package entrygroup
 
 import "github.com/neatflowcv/bival/internal/pkg/domain"
 
-type versionedObjectSpecification struct{}
+func isVersionedHeadCandidate(entry *domain.Plain) bool {
+	return entry.Index() == entry.Name() &&
+		entry.Instance() == ""
+}
 
 type versionedEntryKey struct {
 	name     string
@@ -12,76 +15,11 @@ type versionedEntryKey struct {
 	vEpoch   int
 }
 
-func (versionedObjectSpecification) IsSatisfiedBy(group *EntryGroup) bool {
-	if !hasVersionedEntryCounts(group) {
-		return false
-	}
-
-	headCount := 0
-
-	pairedPlainEntries := make([]*domain.Plain, 0, len(group.PlainEntries())-1)
-	for _, entry := range group.PlainEntries() {
-		if entry.IsPlaceholder() {
-			headCount++
-
-			continue
-		}
-
-		pairedPlainEntries = append(pairedPlainEntries, entry)
-	}
-
-	if headCount != 1 {
-		return false
-	}
-
-	if !hasValidVersionPairs(pairedPlainEntries, group.InstanceEntries()) {
-		return false
-	}
-
-	return hasValidOLHReference(group.OLHEntries(), group.InstanceEntries())
-}
-
-func hasVersionedEntryCounts(group *EntryGroup) bool {
-	return group.PlainCount() >= 2 &&
-		group.InstanceCount() >= 1 &&
-		group.OLHCount() == 1 &&
-		group.PlainCount() == group.InstanceCount()+1
-}
-
-func hasValidVersionPairs(plainEntries []*domain.Plain, instanceEntries []*domain.Instance) bool {
-	if len(plainEntries) == 0 || len(plainEntries) != len(instanceEntries) {
-		return false
-	}
-
-	plainByKey, plainMapOK := buildPlainEntryMap(plainEntries)
-	if !plainMapOK {
-		return false
-	}
-
-	instanceByKey, instanceMapOK := buildInstanceEntryMap(instanceEntries)
-	if !instanceMapOK {
-		return false
-	}
-
-	for key, plainEntry := range plainByKey {
-		instanceEntry, exists := instanceByKey[key]
-		if !exists {
-			return false
-		}
-
-		if !domain.IsVersionPair(plainEntry, instanceEntry) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func buildPlainEntryMap(entries []*domain.Plain) (map[versionedEntryKey]*domain.Plain, bool) {
+func buildPlainEntryMap(entries []*domain.Plain) (map[versionedEntryKey]*domain.Plain, string) {
 	entriesByKey := make(map[versionedEntryKey]*domain.Plain, len(entries))
 	for _, entry := range entries {
 		if entry.Name() == "" {
-			return nil, false
+			return nil, duplicateVersionedEntryKeyReason
 		}
 
 		key := versionedEntryKey{
@@ -93,20 +31,20 @@ func buildPlainEntryMap(entries []*domain.Plain) (map[versionedEntryKey]*domain.
 		}
 
 		if hasPlainKey(entriesByKey, key) {
-			return nil, false
+			return nil, duplicateVersionedEntryKeyReason
 		}
 
 		entriesByKey[key] = entry
 	}
 
-	return entriesByKey, true
+	return entriesByKey, ""
 }
 
-func buildInstanceEntryMap(entries []*domain.Instance) (map[versionedEntryKey]*domain.Instance, bool) {
+func buildInstanceEntryMap(entries []*domain.Instance) (map[versionedEntryKey]*domain.Instance, string) {
 	entriesByKey := make(map[versionedEntryKey]*domain.Instance, len(entries))
 	for _, entry := range entries {
 		if entry.Name() == "" {
-			return nil, false
+			return nil, duplicateVersionedEntryKeyReason
 		}
 
 		key := versionedEntryKey{
@@ -118,13 +56,13 @@ func buildInstanceEntryMap(entries []*domain.Instance) (map[versionedEntryKey]*d
 		}
 
 		if hasInstanceKey(entriesByKey, key) {
-			return nil, false
+			return nil, duplicateVersionedEntryKeyReason
 		}
 
 		entriesByKey[key] = entry
 	}
 
-	return entriesByKey, true
+	return entriesByKey, ""
 }
 
 func hasPlainKey(entries map[versionedEntryKey]*domain.Plain, key versionedEntryKey) bool {

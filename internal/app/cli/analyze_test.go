@@ -110,7 +110,7 @@ func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" reason=\"invalid versioned entry counts\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
@@ -131,7 +131,7 @@ func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"object kind is unknown\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" reason=\"invalid versioned entry counts\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsTooManyVersionedEntries(t *testing.T) {
@@ -183,7 +183,7 @@ func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"beta\" reason=\"object kind is unknown\"\n", buf.String())
+	require.Equal(t, "problem name=\"beta\" reason=\"invalid versioned entry counts\"\n", buf.String())
 }
 
 func TestAnalyzeFileHandlesZeroFloatMTime(t *testing.T) {

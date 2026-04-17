@@ -150,30 +150,26 @@ func TestEntryGroupClassifierReturnsUnversionedObject(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
-
 	err := group.AddPlain(newUnversionedPlainEntry())
 	require.NoError(t, err)
-	require.Equal(t, entrygroup.UnversionedObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.UnversionedObject, group.ObjectKind())
 }
 
-func TestEntryGroupClassifierReturnsUnknownObjectWhenNoRuleMatches(t *testing.T) {
+func TestEntryGroupClassifierReturnsVersionedObjectWhenNoRuleMatches(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newUnversionedPlainEntry()))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierReturnsVersionedObjectWithSingleVersion(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	version := defaultVersionedFixture("v1")
 	instanceVersion := version
@@ -183,14 +179,13 @@ func TestEntryGroupClassifierReturnsVersionedObjectWithSingleVersion(t *testing.
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(instanceVersion)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.VersionedObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierReturnsVersionedObjectWithDeleteMarkerHead(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	deleteMarker := defaultVersionedFixture("delete-v1")
 	deleteMarker.exists = false
@@ -210,14 +205,13 @@ func TestEntryGroupClassifierReturnsVersionedObjectWithDeleteMarkerHead(t *testi
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(deleteMarker)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(deleteMarker)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "delete-v1", false)))
-	require.Equal(t, entrygroup.VersionedObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierReturnsVersionedObjectWithMultipleVersions(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	versionOne := defaultVersionedFixture("v1")
 	versionOne.pool = 186
@@ -235,14 +229,13 @@ func TestEntryGroupClassifierReturnsVersionedObjectWithMultipleVersions(t *testi
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.VersionedObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierReturnsVersionedObjectWithEmptyInstanceVersion(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	version := defaultVersionedFixture("")
 	version.pool = 34
@@ -254,32 +247,30 @@ func TestEntryGroupClassifierReturnsVersionedObjectWithEmptyInstanceVersion(t *t
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(version)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "", false)))
-	require.Equal(t, entrygroup.VersionedObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainIsMissing(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainIsDuplicated(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainShapeIsInvalid(t *testing.T) {
@@ -304,7 +295,6 @@ func assertVersionedObjectRejectedForInvalidHead(t *testing.T, fixture versioned
 	t.Helper()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	invalidHead := newCustomVersionedPlainEntry(fixture, false)
 
@@ -312,7 +302,7 @@ func assertVersionedObjectRejectedForInvalidHead(t *testing.T, fixture versioned
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func versionedHeadFixture() versionedEntryFixture {
@@ -342,7 +332,6 @@ func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainInstanceNonTagPayloa
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	fixture := defaultVersionedFixture("v1")
 	mismatchedInstance := fixture
@@ -352,68 +341,63 @@ func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainInstanceNonTagPayloa
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(fixture)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(mismatchedInstance)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainHasNoMatchingInstance(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v2"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenInstanceHasNoMatchingPlain(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v2"))))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenOLHReferencesMissingInstance(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "missing", false)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsVersionedObjectWhenOLHHasPendingLog(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", true)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenIdxDiffersFromName(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha-idx",
@@ -428,14 +412,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenIdxDiffersFromName(t *testing
 		"tag",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenInstanceIsNotEmpty(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -450,14 +433,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenInstanceIsNotEmpty(t *testing
 		"tag",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenVersionPoolIsBelowMinimum(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -472,14 +454,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenVersionPoolIsBelowMinimum(t *
 		"tag",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenVersionEpochIsBelowMinimum(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -494,14 +475,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenVersionEpochIsBelowMinimum(t 
 		"tag",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenExistsIsFalse(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -516,14 +496,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenExistsIsFalse(t *testing.T) {
 		"tag",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenMTimeIsZero(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -538,14 +517,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenMTimeIsZero(t *testing.T) {
 		"tag",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenETagIsEmpty(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -560,14 +538,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenETagIsEmpty(t *testing.T) {
 		"tag",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenTagIsEmpty(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -582,14 +559,13 @@ func TestEntryGroupClassifierRejectsUnversionedWhenTagIsEmpty(t *testing.T) {
 		"",
 		0,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupClassifierRejectsUnversionedWhenFlagsAreNotZero(t *testing.T) {
 	t.Parallel()
 
 	group := entrygroup.New("alpha")
-	classifier := entrygroup.NewClassifier()
 
 	require.NoError(t, group.AddPlain(newCustomPlainEntry(
 		"alpha",
@@ -604,7 +580,7 @@ func TestEntryGroupClassifierRejectsUnversionedWhenFlagsAreNotZero(t *testing.T)
 		"tag",
 		1,
 	)))
-	require.Equal(t, entrygroup.UnknownObject, classifier.Classify(group))
+	require.Equal(t, entrygroup.VersionedObject, group.ObjectKind())
 }
 
 func TestEntryGroupRejectsMismatchedPlainName(t *testing.T) {

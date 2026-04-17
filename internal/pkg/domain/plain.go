@@ -100,6 +100,11 @@ func (e *Plain) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
 
+func (e *Plain) IsUnversioned() bool {
+	return e.hasUnversionedIdentity() &&
+		e.hasUnversionedState()
+}
+
 func (e *Plain) IsPlaceholder() bool {
 	return e.hasPlaceholderIdentity() &&
 		e.hasPlaceholderVersion() &&
@@ -110,6 +115,21 @@ func (e *Plain) IsPlaceholder() bool {
 func (e *Plain) hasPlaceholderIdentity() bool {
 	return string(e.index) == e.name &&
 		e.instance == ""
+}
+
+func (e *Plain) hasUnversionedIdentity() bool {
+	return string(e.index) == e.name &&
+		e.instance == "" &&
+		e.pool >= 1 &&
+		e.epoch >= 1
+}
+
+func (e *Plain) hasUnversionedState() bool {
+	return e.exists &&
+		e.mTime != "" &&
+		e.eTag != "" &&
+		e.tag != "" &&
+		e.flags == 0
 }
 
 func (e *Plain) hasPlaceholderVersion() bool {
