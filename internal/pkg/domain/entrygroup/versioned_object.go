@@ -40,27 +40,19 @@ func NewVersionedObject(group *EntryGroup) (*VersionedObject, error) {
 		return nil, errNotVersionedObject
 	}
 
-	var (
-		placeholder *domain.Plain
-		pairs       map[string]*Pair
-		olh         *domain.OLH
-		errs        []error
-	)
-
-	var err error
-
-	placeholder, pairs, err = buildVersionedObjectParts(group)
+	err := checkRules(group, newVersionedObjectRules())
 	if err != nil {
-		errs = append(errs, splitJoinedErrors(err)...)
+		return nil, err
 	}
 
-	olh, err = buildVersionedOLH(group.OLHEntries(), group.InstanceEntries())
+	placeholder, pairs, err := buildVersionedObjectParts(group)
 	if err != nil {
-		errs = append(errs, err)
+		return nil, err
 	}
 
-	if len(errs) > 0 {
-		return nil, errors.Join(errs...)
+	olh, err := buildVersionedOLH(group.OLHEntries(), group.InstanceEntries())
+	if err != nil {
+		return nil, err
 	}
 
 	object := &VersionedObject{
