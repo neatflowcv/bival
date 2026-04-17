@@ -74,7 +74,8 @@ func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
 			),
 			domain.NewAuditInfo(mTime, record.Entry.Meta.ETag),
 			domain.NewContentInfo(record.Entry.Meta.StorageClass, record.Entry.Meta.ContentType),
-			domain.NewOwner(record.Entry.Meta.Owner, record.Entry.Meta.OwnerDisplayName),
+			record.Entry.Meta.Owner,
+			record.Entry.Meta.OwnerDisplayName,
 		),
 		PendingMaps: newPendingMaps(record),
 	}, nil

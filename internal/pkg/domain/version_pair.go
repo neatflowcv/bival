@@ -33,7 +33,8 @@ func equalMeta(left *Meta, right *Meta) bool {
 	return equalObjectSpec(left.objectSpec, right.objectSpec) &&
 		equalAuditInfo(left.auditInfo, right.auditInfo) &&
 		equalContentInfo(left.contentInfo, right.contentInfo) &&
-		equalOwner(left.owner, right.owner)
+		left.ownerUserID == right.ownerUserID &&
+		left.ownerDisplayName == right.ownerDisplayName
 }
 
 func equalObjectSpec(left *ObjectSpec, right *ObjectSpec) bool {
@@ -63,15 +64,6 @@ func equalContentInfo(left *ContentInfo, right *ContentInfo) bool {
 
 	return left.storageClass == right.storageClass &&
 		left.contentType == right.contentType
-}
-
-func equalOwner(left *Owner, right *Owner) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
-
-	return left.userID == right.userID &&
-		left.displayName == right.displayName
 }
 
 func equalPendingMaps(left []*PendingMap, right []*PendingMap) bool {

@@ -34,14 +34,6 @@ func TestContentInfoIsDefault(t *testing.T) {
 	require.False(t, domain.NewContentInfo("", "text/plain").IsDefault())
 }
 
-func TestOwnerIsDefault(t *testing.T) {
-	t.Parallel()
-
-	require.True(t, domain.NewOwner("", "").IsDefault())
-	require.False(t, domain.NewOwner("user", "").IsDefault())
-	require.False(t, domain.NewOwner("", "display").IsDefault())
-}
-
 func TestMetaIsDefault(t *testing.T) {
 	t.Parallel()
 
@@ -49,22 +41,33 @@ func TestMetaIsDefault(t *testing.T) {
 		domain.NewObjectSpec(0, 0, 0, false),
 		domain.NewAuditInfo(time.Time{}, ""),
 		domain.NewContentInfo("", ""),
-		domain.NewOwner("", ""),
+		"",
+		"",
 	)
 	nonDefaultMeta := domain.NewMeta(
 		domain.NewObjectSpec(1, 0, 0, false),
 		domain.NewAuditInfo(time.Time{}, ""),
 		domain.NewContentInfo("", ""),
-		domain.NewOwner("", ""),
+		"",
+		"",
+	)
+	nonDefaultOwnerMeta := domain.NewMeta(
+		domain.NewObjectSpec(0, 0, 0, false),
+		domain.NewAuditInfo(time.Time{}, ""),
+		domain.NewContentInfo("", ""),
+		"user",
+		"",
 	)
 	missingPartMeta := domain.NewMeta(
 		nil,
 		domain.NewAuditInfo(time.Time{}, ""),
 		domain.NewContentInfo("", ""),
-		domain.NewOwner("", ""),
+		"",
+		"",
 	)
 
 	require.True(t, defaultMeta.IsDefault())
 	require.False(t, nonDefaultMeta.IsDefault())
+	require.False(t, nonDefaultOwnerMeta.IsDefault())
 	require.False(t, missingPartMeta.IsDefault())
 }
