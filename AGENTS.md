@@ -9,7 +9,7 @@
 
 - 테스트 가이드: [docs/test-guide.md](docs/test-guide.md)
   - 테스트를 변경할 때 반드시 함께 확인합니다.
-- 커밋 컨벤션: [docs/commit-convention.md](docs/commit-convention.md)
+- 커밋 가이드: [docs/commit-guide.md](docs/commit-guide.md)
   - 커밋 메시지를 작성할 때 반드시 확인합니다.
 - 마크다운 가이드: [docs/markdown-guide.md](docs/markdown-guide.md)
   - 마크다운 문서를 작성할 때 반드시 확인합니다.
