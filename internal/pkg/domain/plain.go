@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-type PlainEntry struct {
+type Plain struct {
 	kind             string
 	index            []byte
 	name             string
@@ -27,8 +27,8 @@ type PlainEntry struct {
 	pendingMaps      []*PendingMap
 }
 
-func NewPlainEntry(p DirEntryParams) *PlainEntry {
-	return &PlainEntry{
+func NewPlain(p DirEntryParams) *Plain {
+	return &Plain{
 		kind:             p.Kind,
 		index:            p.Index,
 		name:             p.Name,
@@ -54,73 +54,73 @@ func NewPlainEntry(p DirEntryParams) *PlainEntry {
 	}
 }
 
-func (e *PlainEntry) Index() string {
+func (e *Plain) Index() string {
 	return string(e.index)
 }
 
-func (e *PlainEntry) Name() string {
+func (e *Plain) Name() string {
 	return e.name
 }
 
-func (e *PlainEntry) Instance() string {
+func (e *Plain) Instance() string {
 	return e.instance
 }
 
-func (e *PlainEntry) VersionPool() int {
+func (e *Plain) VersionPool() int {
 	return e.pool
 }
 
-func (e *PlainEntry) VersionEpoch() int {
+func (e *Plain) VersionEpoch() int {
 	return e.epoch
 }
 
-func (e *PlainEntry) VersionedEpoch() int {
+func (e *Plain) VersionedEpoch() int {
 	return e.vEpoch
 }
 
-func (e *PlainEntry) Exists() bool {
+func (e *Plain) Exists() bool {
 	return e.exists
 }
 
-func (e *PlainEntry) MTime() time.Time {
+func (e *Plain) MTime() time.Time {
 	return e.mTime
 }
 
-func (e *PlainEntry) ETag() string {
+func (e *Plain) ETag() string {
 	return e.eTag
 }
 
-func (e *PlainEntry) Tag() string {
+func (e *Plain) Tag() string {
 	return e.tag
 }
 
-func (e *PlainEntry) Flags() int {
+func (e *Plain) Flags() int {
 	return e.flags
 }
 
-func (e *PlainEntry) HasPendingMap() bool {
+func (e *Plain) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
 
-func (e *PlainEntry) IsPlaceholder() bool {
+func (e *Plain) IsPlaceholder() bool {
 	return e.hasPlaceholderIdentity() &&
 		e.hasPlaceholderVersion() &&
 		e.hasPlaceholderState() &&
 		e.hasPlaceholderMeta()
 }
 
-func (e *PlainEntry) hasPlaceholderIdentity() bool {
+func (e *Plain) hasPlaceholderIdentity() bool {
 	return string(e.index) == e.name &&
 		e.instance == ""
 }
 
-func (e *PlainEntry) hasPlaceholderVersion() bool {
+func (e *Plain) hasPlaceholderVersion() bool {
 	return e.pool == -1 &&
 		e.epoch == 0 &&
 		e.vEpoch == 0
 }
 
-func (e *PlainEntry) hasPlaceholderState() bool {
+func (e *Plain) hasPlaceholderState() bool {
 	return !e.exists &&
 		e.locator == "" &&
 		e.tag == "" &&
@@ -128,7 +128,7 @@ func (e *PlainEntry) hasPlaceholderState() bool {
 		len(e.pendingMaps) == 0
 }
 
-func (e *PlainEntry) hasPlaceholderMeta() bool {
+func (e *Plain) hasPlaceholderMeta() bool {
 	return e.category == 0 &&
 		e.size == 0 &&
 		e.accountedSize == 0 &&

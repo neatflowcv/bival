@@ -647,7 +647,7 @@ func TestEntryGroupRejectsMismatchedOLHName(t *testing.T) {
 	)
 }
 
-func newPlainEntry(name string, pending bool) *domain.PlainEntry {
+func newPlainEntry(name string, pending bool) *domain.Plain {
 	return newCustomPlainEntry(
 		name,
 		name,
@@ -663,7 +663,7 @@ func newPlainEntry(name string, pending bool) *domain.PlainEntry {
 	)
 }
 
-func newUnversionedPlainEntry() *domain.PlainEntry {
+func newUnversionedPlainEntry() *domain.Plain {
 	return newCustomPlainEntry(
 		"alpha",
 		"alpha",
@@ -736,7 +736,7 @@ func fixtureWithPendingMap(fixture versionedEntryFixture, pending bool) versione
 	return fixture
 }
 
-func newVersionedHeadPlainEntry() *domain.PlainEntry {
+func newVersionedHeadPlainEntry() *domain.Plain {
 	return newCustomVersionedPlainEntry(versionedEntryFixture{
 		idx:            "alpha",
 		name:           "alpha",
@@ -759,11 +759,11 @@ func newVersionedHeadPlainEntry() *domain.PlainEntry {
 	}, false)
 }
 
-func newVersionedPlainEntry(fixture versionedEntryFixture) *domain.PlainEntry {
+func newVersionedPlainEntry(fixture versionedEntryFixture) *domain.Plain {
 	return newCustomVersionedPlainEntry(fixture, true)
 }
 
-func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedIndex bool) *domain.PlainEntry {
+func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedIndex bool) *domain.Plain {
 	var pendingMaps []*domain.PendingMap
 	if fixture.pendingMap {
 		pendingMaps = []*domain.PendingMap{nil}
@@ -774,7 +774,7 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 		idx = versionedPlainIndex(fixture.instance)
 	}
 
-	return domain.NewPlainEntry(
+	return domain.NewPlain(
 		domain.DirEntryParams{
 			Kind:             "plain",
 			Index:            []byte(idx),
@@ -848,13 +848,13 @@ func newCustomPlainEntry(
 	etag string,
 	tag string,
 	flags int,
-) *domain.PlainEntry {
+) *domain.Plain {
 	var pendingMaps []*domain.PendingMap
 	if pending {
 		pendingMaps = []*domain.PendingMap{nil}
 	}
 
-	return domain.NewPlainEntry(
+	return domain.NewPlain(
 		domain.DirEntryParams{
 			Kind:             "plain",
 			Index:            []byte(idx),

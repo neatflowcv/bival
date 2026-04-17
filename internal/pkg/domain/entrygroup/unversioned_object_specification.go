@@ -23,19 +23,19 @@ func hasUnversionedEntryCounts(group *EntryGroup) bool {
 		group.OLHCount() == 0
 }
 
-func isValidUnversionedPlainEntry(entry *domain.PlainEntry) bool {
+func isValidUnversionedPlainEntry(entry *domain.Plain) bool {
 	return hasValidUnversionedIdentity(entry) &&
 		hasValidUnversionedState(entry)
 }
 
-func hasValidUnversionedIdentity(entry *domain.PlainEntry) bool {
+func hasValidUnversionedIdentity(entry *domain.Plain) bool {
 	return entry.Index() == entry.Name() &&
 		entry.Instance() == "" &&
 		entry.VersionPool() >= 1 &&
 		entry.VersionEpoch() >= 1
 }
 
-func hasValidUnversionedState(entry *domain.PlainEntry) bool {
+func hasValidUnversionedState(entry *domain.Plain) bool {
 	return entry.Exists() &&
 		!entry.MTime().IsZero() &&
 		entry.ETag() != "" &&

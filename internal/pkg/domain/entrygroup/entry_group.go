@@ -17,7 +17,7 @@ const (
 
 type EntryGroup struct {
 	name            string
-	plainEntries    []*domain.PlainEntry
+	plainEntries    []*domain.Plain
 	instanceEntries []*domain.InstanceEntry
 	olhEntries      []*domain.OLH
 }
@@ -95,7 +95,7 @@ func (g *EntryGroup) ProblemReason() string {
 	return ""
 }
 
-func (g *EntryGroup) AddPlain(entry *domain.PlainEntry) error {
+func (g *EntryGroup) AddPlain(entry *domain.Plain) error {
 	err := g.validateName(entry.Name())
 	if err != nil {
 		return err
@@ -128,7 +128,7 @@ func (g *EntryGroup) AddOLH(entry *domain.OLH) error {
 	return nil
 }
 
-func (g *EntryGroup) PlainEntries() []*domain.PlainEntry {
+func (g *EntryGroup) PlainEntries() []*domain.Plain {
 	return g.plainEntries
 }
 

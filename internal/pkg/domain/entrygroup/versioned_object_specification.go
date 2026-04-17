@@ -19,7 +19,7 @@ func (versionedObjectSpecification) IsSatisfiedBy(group *EntryGroup) bool {
 
 	headCount := 0
 
-	pairedPlainEntries := make([]*domain.PlainEntry, 0, len(group.PlainEntries())-1)
+	pairedPlainEntries := make([]*domain.Plain, 0, len(group.PlainEntries())-1)
 	for _, entry := range group.PlainEntries() {
 		if entry.IsPlaceholder() {
 			headCount++
@@ -48,7 +48,7 @@ func hasVersionedEntryCounts(group *EntryGroup) bool {
 		group.PlainCount() == group.InstanceCount()+1
 }
 
-func hasValidVersionPairs(plainEntries []*domain.PlainEntry, instanceEntries []*domain.InstanceEntry) bool {
+func hasValidVersionPairs(plainEntries []*domain.Plain, instanceEntries []*domain.InstanceEntry) bool {
 	if len(plainEntries) == 0 || len(plainEntries) != len(instanceEntries) {
 		return false
 	}
@@ -77,8 +77,8 @@ func hasValidVersionPairs(plainEntries []*domain.PlainEntry, instanceEntries []*
 	return true
 }
 
-func buildPlainEntryMap(entries []*domain.PlainEntry) (map[versionedEntryKey]*domain.PlainEntry, bool) {
-	entriesByKey := make(map[versionedEntryKey]*domain.PlainEntry, len(entries))
+func buildPlainEntryMap(entries []*domain.Plain) (map[versionedEntryKey]*domain.Plain, bool) {
+	entriesByKey := make(map[versionedEntryKey]*domain.Plain, len(entries))
 	for _, entry := range entries {
 		if entry.Name() == "" {
 			return nil, false
@@ -127,7 +127,7 @@ func buildInstanceEntryMap(entries []*domain.InstanceEntry) (map[versionedEntryK
 	return entriesByKey, true
 }
 
-func hasPlainKey(entries map[versionedEntryKey]*domain.PlainEntry, key versionedEntryKey) bool {
+func hasPlainKey(entries map[versionedEntryKey]*domain.Plain, key versionedEntryKey) bool {
 	_, exists := entries[key]
 
 	return exists

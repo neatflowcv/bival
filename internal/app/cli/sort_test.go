@@ -230,7 +230,7 @@ func TestBuildEntryPreservesPendingPresence(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	plainTyped, isPlain := plainEntry.(*domain.PlainEntry)
+	plainTyped, isPlain := plainEntry.(*domain.Plain)
 	require.True(t, isPlain)
 	require.True(t, plainTyped.HasPendingMap())
 
@@ -320,7 +320,7 @@ func TestBuildEntryAcceptsZeroFloatMTime(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	plainTyped, isPlain := entry.(*domain.PlainEntry)
+	plainTyped, isPlain := entry.(*domain.Plain)
 	require.True(t, isPlain)
 	require.True(t, plainTyped.MTime().IsZero())
 }
