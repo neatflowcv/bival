@@ -77,28 +77,3 @@ func (e *Instance) VersionedEpoch() int {
 func (e *Instance) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
-
-func (e *Instance) Payload() *DirPayload {
-	return NewDirPayload(
-		e.name,
-		e.instance,
-		e.pool,
-		e.epoch,
-		e.vEpoch,
-		e.locator,
-		e.exists,
-		e.tag,
-		e.flags,
-		e.category,
-		e.size,
-		e.accountedSize,
-		e.appendable,
-		e.mTime,
-		e.eTag,
-		e.storageClass,
-		e.contentType,
-		e.ownerUserID,
-		e.ownerDisplayName,
-		e.pendingMaps,
-	)
-}
