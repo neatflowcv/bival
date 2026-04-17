@@ -3,7 +3,7 @@ package entrygroup
 type versionedEntryKeyRule struct{}
 
 func (versionedEntryKeyRule) Check(group *EntryGroup) error {
-	_, pairedPlainEntries, collectIssue := collectVersionedPlainEntries(group.PlainEntries())
+	pairedPlainEntries, collectIssue := collectVersionedPlainEntries(group.PlainEntries())
 	if collectIssue == nil {
 		_, reason := buildPlainEntryMap(pairedPlainEntries)
 		if reason != "" {

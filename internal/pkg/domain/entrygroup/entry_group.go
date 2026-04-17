@@ -106,7 +106,7 @@ func (g *EntryGroup) ProblemReason() []string {
 		reasons = append(reasons, tooManyVersionedEntriesReason)
 	}
 
-	_, err := NewVersionedObject(g)
+	err := checkRules(g, newVersionedObjectRules())
 	if err != nil {
 		errs := splitJoinedErrors(err)
 		for _, errItem := range errs {

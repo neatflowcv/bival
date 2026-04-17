@@ -141,6 +141,7 @@ func logProblem(group *entrygroup.EntryGroup, logger *log.Logger) {
 
 		args = append(args, reason)
 	}
+
 	format += formatSb137.String()
 
 	logger.Printf(format, args...)

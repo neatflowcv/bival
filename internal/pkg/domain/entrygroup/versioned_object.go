@@ -6,7 +6,6 @@ import (
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
-var errNotVersionedObject = errors.New("entry group is not a versioned object")
 var errMissingVersionedHead = errors.New(missingVersionedHeadReason)
 var errDuplicateVersionedHead = errors.New(duplicateVersionedHeadReason)
 var errInvalidVersionedHead = errors.New(invalidVersionedHeadReason)
@@ -19,12 +18,6 @@ var errInvalidOLH = errors.New(invalidOLHReason)
 var errInvalidVersionedOLH = errors.New(invalidOLHReferenceReason)
 var errPairAlreadyFull = errors.New("pair is already full")
 
-type VersionedObject struct {
-	Placeholder *domain.Plain
-	Pairs       map[string]*Pair
-	OLH         *domain.OLH
-}
-
 type Pair struct {
 	Plain    *domain.Plain
 	Instance *domain.Instance
@@ -35,60 +28,7 @@ func (p *Pair) isFull() bool {
 		p.Instance != nil
 }
 
-func NewVersionedObject(group *EntryGroup) (*VersionedObject, error) {
-	if group.ObjectKind() != VersionedObjectKind {
-		return nil, errNotVersionedObject
-	}
-
-	err := checkRules(group, newVersionedObjectRules())
-	if err != nil {
-		return nil, err
-	}
-
-	placeholder, pairs, err := buildVersionedObjectParts(group)
-	if err != nil {
-		return nil, err
-	}
-
-	olh, err := buildVersionedOLH(group.OLHEntries(), group.InstanceEntries())
-	if err != nil {
-		return nil, err
-	}
-
-	object := &VersionedObject{
-		Placeholder: placeholder,
-		Pairs:       pairs,
-		OLH:         olh,
-	}
-
-	return object, nil
-}
-
-func buildVersionedObjectParts(group *EntryGroup) (*domain.Plain, map[string]*Pair, error) {
-	placeholder, pairedPlainEntries, err := collectVersionedPlainEntries(group.PlainEntries())
-	if err != nil {
-		return nil, nil, err
-	}
-
-	plainByKey, reason := buildPlainEntryMap(pairedPlainEntries)
-	if reason != "" {
-		return nil, nil, errDuplicateVersionedEntryKey
-	}
-
-	instanceByKey, reason := buildInstanceEntryMap(group.InstanceEntries())
-	if reason != "" {
-		return nil, nil, errDuplicateVersionedEntryKey
-	}
-
-	pairs, err := composeVersionedPairs(plainByKey, instanceByKey)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return placeholder, pairs, nil
-}
-
-func collectVersionedPlainEntries(entries []*domain.Plain) (*domain.Plain, []*domain.Plain, error) {
+func collectVersionedPlainEntries(entries []*domain.Plain) ([]*domain.Plain, error) {
 	pairedPlainEntries := make([]*domain.Plain, 0, len(entries))
 
 	var (
@@ -128,10 +68,10 @@ func collectVersionedPlainEntries(entries []*domain.Plain) (*domain.Plain, []*do
 	}
 
 	if len(errs) > 0 {
-		return nil, nil, errors.Join(errs...)
+		return nil, errors.Join(errs...)
 	}
 
-	return placeholder, pairedPlainEntries, nil
+	return pairedPlainEntries, nil
 }
 
 func composeVersionedPairs(
