@@ -98,6 +98,13 @@ func (e *PlainEntry) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
 
+func (e *PlainEntry) IsPlaceholder() bool {
+	return e.hasPlaceholderIdentity() &&
+		e.hasPlaceholderVersion() &&
+		e.hasPlaceholderState() &&
+		e.hasPlaceholderMeta()
+}
+
 func (e *PlainEntry) Payload() *DirPayload {
 	return NewDirPayload(
 		e.name,
@@ -121,4 +128,36 @@ func (e *PlainEntry) Payload() *DirPayload {
 		e.ownerDisplayName,
 		e.pendingMaps,
 	)
+}
+
+func (e *PlainEntry) hasPlaceholderIdentity() bool {
+	return string(e.index) == e.name &&
+		e.instance == ""
+}
+
+func (e *PlainEntry) hasPlaceholderVersion() bool {
+	return e.pool == -1 &&
+		e.epoch == 0 &&
+		e.vEpoch == 0
+}
+
+func (e *PlainEntry) hasPlaceholderState() bool {
+	return !e.exists &&
+		e.locator == "" &&
+		e.tag == "" &&
+		e.flags == 8 &&
+		len(e.pendingMaps) == 0
+}
+
+func (e *PlainEntry) hasPlaceholderMeta() bool {
+	return e.category == 0 &&
+		e.size == 0 &&
+		e.accountedSize == 0 &&
+		!e.appendable &&
+		e.mTime.IsZero() &&
+		e.eTag == "" &&
+		e.storageClass == "" &&
+		e.contentType == "" &&
+		e.ownerUserID == "" &&
+		e.ownerDisplayName == ""
 }

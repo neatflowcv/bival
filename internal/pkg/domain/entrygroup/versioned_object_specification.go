@@ -21,7 +21,7 @@ func (versionedObjectSpecification) IsSatisfiedBy(group *EntryGroup) bool {
 
 	pairedPlainEntries := make([]*domain.PlainEntry, 0, len(group.PlainEntries())-1)
 	for _, entry := range group.PlainEntries() {
-		if isValidVersionedHeadPlainEntry(entry) {
+		if entry.IsPlaceholder() {
 			headCount++
 
 			continue
@@ -46,49 +46,6 @@ func hasVersionedEntryCounts(group *EntryGroup) bool {
 		group.InstanceCount() >= 1 &&
 		group.OLHCount() == 1 &&
 		group.PlainCount() == group.InstanceCount()+1
-}
-
-func isValidVersionedHeadPlainEntry(entry *domain.PlainEntry) bool {
-	payload, ok := headPlainPayload(entry)
-	if !ok {
-		return false
-	}
-
-	return hasHeadIdentity(entry) &&
-		hasHeadVersion(payload) &&
-		hasHeadState(payload) &&
-		hasHeadMetaParts(payload) &&
-		payload.IsMetaDefault()
-}
-
-func headPlainPayload(entry *domain.PlainEntry) (*domain.DirPayload, bool) {
-	payload := entry.Payload()
-	if payload == nil || payload.Name() == "" {
-		return nil, false
-	}
-
-	return payload, true
-}
-
-func hasHeadIdentity(entry *domain.PlainEntry) bool {
-	return entry.Index() == entry.Name() && entry.Instance() == ""
-}
-
-func hasHeadVersion(payload *domain.DirPayload) bool {
-	return payload.IsVersionMissing() &&
-		payload.VersionedEpoch() == 0
-}
-
-func hasHeadState(payload *domain.DirPayload) bool {
-	return !payload.Exists() &&
-		payload.Locator() == "" &&
-		payload.Tag() == "" &&
-		payload.Flags() == 8 &&
-		len(payload.PendingMaps()) == 0
-}
-
-func hasHeadMetaParts(payload *domain.DirPayload) bool {
-	return payload.HasMetaParts()
 }
 
 func hasValidVersionPairs(plainEntries []*domain.PlainEntry, instanceEntries []*domain.InstanceEntry) bool {
