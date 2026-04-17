@@ -11,7 +11,7 @@ func NewInstanceEntry(entry *DirEntry) *InstanceEntry {
 }
 
 func (e *InstanceEntry) Name() string {
-	return e.entry.payload.key.name
+	return e.entry.key.name
 }
 
 func (e *InstanceEntry) HasPendingMap() bool {
@@ -23,5 +23,11 @@ func (e *InstanceEntry) Payload() *DirPayload {
 		return nil
 	}
 
-	return e.entry.payload
+	return NewDirPayload(
+		e.entry.key,
+		e.entry.versionInfo,
+		e.entry.state,
+		e.entry.meta,
+		e.entry.pendingMaps,
+	)
 }

@@ -778,31 +778,29 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 		domain.NewDirEntry(domain.DirEntryParams{
 			Kind:  "plain",
 			Index: []byte(idx),
-			Payload: domain.NewDirPayload(
-				domain.NewKey(fixture.name, fixture.instance),
-				domain.NewDirVersionInfo(
-					domain.NewVersion(fixture.pool, fixture.epoch),
-					fixture.versionedEpoch,
-				),
-				domain.NewDirState(
-					"",
-					fixture.exists,
-					fixture.tag,
-					fixture.flags,
-				),
-				domain.NewMeta(
-					domain.NewObjectSpec(
-						fixture.category,
-						fixture.size,
-						fixture.accountedSize,
-						false,
-					),
-					domain.NewAuditInfo(fixture.mtime, fixture.eTag),
-					domain.NewContentInfo("", fixture.contentType),
-					domain.NewOwner(fixture.owner, fixture.ownerDisplay),
-				),
-				pendingMaps,
+			Key:   domain.NewKey(fixture.name, fixture.instance),
+			VersionInfo: domain.NewDirVersionInfo(
+				domain.NewVersion(fixture.pool, fixture.epoch),
+				fixture.versionedEpoch,
 			),
+			State: domain.NewDirState(
+				"",
+				fixture.exists,
+				fixture.tag,
+				fixture.flags,
+			),
+			Meta: domain.NewMeta(
+				domain.NewObjectSpec(
+					fixture.category,
+					fixture.size,
+					fixture.accountedSize,
+					false,
+				),
+				domain.NewAuditInfo(fixture.mtime, fixture.eTag),
+				domain.NewContentInfo("", fixture.contentType),
+				domain.NewOwner(fixture.owner, fixture.ownerDisplay),
+			),
+			PendingMaps: pendingMaps,
 		}),
 	)
 }
@@ -817,31 +815,29 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 		domain.NewDirEntry(domain.DirEntryParams{
 			Kind:  "instance",
 			Index: []byte(versionedInstanceIndex(fixture.instance)),
-			Payload: domain.NewDirPayload(
-				domain.NewKey(fixture.name, fixture.instance),
-				domain.NewDirVersionInfo(
-					domain.NewVersion(fixture.pool, fixture.epoch),
-					fixture.versionedEpoch,
-				),
-				domain.NewDirState(
-					"",
-					fixture.exists,
-					fixture.tag,
-					fixture.flags,
-				),
-				domain.NewMeta(
-					domain.NewObjectSpec(
-						fixture.category,
-						fixture.size,
-						fixture.accountedSize,
-						false,
-					),
-					domain.NewAuditInfo(fixture.mtime, fixture.eTag),
-					domain.NewContentInfo("", fixture.contentType),
-					domain.NewOwner(fixture.owner, fixture.ownerDisplay),
-				),
-				pendingMaps,
+			Key:   domain.NewKey(fixture.name, fixture.instance),
+			VersionInfo: domain.NewDirVersionInfo(
+				domain.NewVersion(fixture.pool, fixture.epoch),
+				fixture.versionedEpoch,
 			),
+			State: domain.NewDirState(
+				"",
+				fixture.exists,
+				fixture.tag,
+				fixture.flags,
+			),
+			Meta: domain.NewMeta(
+				domain.NewObjectSpec(
+					fixture.category,
+					fixture.size,
+					fixture.accountedSize,
+					false,
+				),
+				domain.NewAuditInfo(fixture.mtime, fixture.eTag),
+				domain.NewContentInfo("", fixture.contentType),
+				domain.NewOwner(fixture.owner, fixture.ownerDisplay),
+			),
+			PendingMaps: pendingMaps,
 		}),
 	)
 }
@@ -868,26 +864,24 @@ func newCustomPlainEntry(
 		domain.NewDirEntry(domain.DirEntryParams{
 			Kind:  "plain",
 			Index: []byte(idx),
-			Payload: domain.NewDirPayload(
-				domain.NewKey(name, instance),
-				domain.NewDirVersionInfo(
-					domain.NewVersion(pool, epoch),
-					0,
-				),
-				domain.NewDirState(
-					"",
-					exists,
-					tag,
-					flags,
-				),
-				domain.NewMeta(
-					domain.NewObjectSpec(1, 4, 4, false),
-					domain.NewAuditInfo(mtime, etag),
-					domain.NewContentInfo("", ""),
-					domain.NewOwner("", ""),
-				),
-				pendingMaps,
+			Key:   domain.NewKey(name, instance),
+			VersionInfo: domain.NewDirVersionInfo(
+				domain.NewVersion(pool, epoch),
+				0,
 			),
+			State: domain.NewDirState(
+				"",
+				exists,
+				tag,
+				flags,
+			),
+			Meta: domain.NewMeta(
+				domain.NewObjectSpec(1, 4, 4, false),
+				domain.NewAuditInfo(mtime, etag),
+				domain.NewContentInfo("", ""),
+				domain.NewOwner("", ""),
+			),
+			PendingMaps: pendingMaps,
 		}),
 	)
 }

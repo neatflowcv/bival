@@ -54,31 +54,29 @@ func newDirEntry(record *bilist.Record) (*domain.DirEntry, error) {
 	return domain.NewDirEntry(domain.DirEntryParams{
 		Kind:  record.Type,
 		Index: []byte(record.Idx),
-		Payload: domain.NewDirPayload(
-			domain.NewKey(record.Entry.Name, record.Entry.Instance),
-			domain.NewDirVersionInfo(
-				domain.NewVersion(record.Entry.Ver.Pool, record.Entry.Ver.Epoch),
-				record.Entry.VersionedEpoch,
-			),
-			domain.NewDirState(
-				record.Entry.Locator,
-				record.Entry.Exists,
-				record.Entry.Tag,
-				record.Entry.Flags,
-			),
-			domain.NewMeta(
-				domain.NewObjectSpec(
-					record.Entry.Meta.Category,
-					record.Entry.Meta.Size,
-					record.Entry.Meta.AccountedSize,
-					record.Entry.Meta.Appendable,
-				),
-				domain.NewAuditInfo(mTime, record.Entry.Meta.ETag),
-				domain.NewContentInfo(record.Entry.Meta.StorageClass, record.Entry.Meta.ContentType),
-				domain.NewOwner(record.Entry.Meta.Owner, record.Entry.Meta.OwnerDisplayName),
-			),
-			newPendingMaps(record),
+		Key:   domain.NewKey(record.Entry.Name, record.Entry.Instance),
+		VersionInfo: domain.NewDirVersionInfo(
+			domain.NewVersion(record.Entry.Ver.Pool, record.Entry.Ver.Epoch),
+			record.Entry.VersionedEpoch,
 		),
+		State: domain.NewDirState(
+			record.Entry.Locator,
+			record.Entry.Exists,
+			record.Entry.Tag,
+			record.Entry.Flags,
+		),
+		Meta: domain.NewMeta(
+			domain.NewObjectSpec(
+				record.Entry.Meta.Category,
+				record.Entry.Meta.Size,
+				record.Entry.Meta.AccountedSize,
+				record.Entry.Meta.Appendable,
+			),
+			domain.NewAuditInfo(mTime, record.Entry.Meta.ETag),
+			domain.NewContentInfo(record.Entry.Meta.StorageClass, record.Entry.Meta.ContentType),
+			domain.NewOwner(record.Entry.Meta.Owner, record.Entry.Meta.OwnerDisplayName),
+		),
+		PendingMaps: newPendingMaps(record),
 	}), nil
 }
 
