@@ -145,8 +145,25 @@ func buildPlainEntryMap(entries []*domain.PlainEntry) (map[versionedEntryKey]*do
 func buildInstanceEntryMap(entries []*domain.InstanceEntry) (map[versionedEntryKey]*domain.InstanceEntry, bool) {
 	entriesByKey := make(map[versionedEntryKey]*domain.InstanceEntry, len(entries))
 	for _, entry := range entries {
-		key, ok := versionedInstanceEntryKey(entry)
-		if !ok || hasInstanceKey(entriesByKey, key) {
+		payload, ok := dirPayloadFromInstanceEntry(entry)
+		if !ok || payload.VersionInfo() == nil || payload.VersionInfo().Version() == nil {
+			return nil, false
+		}
+
+		entryKey := entry.EntryKey()
+		if entryKey == nil || entryKey.Name() == "" {
+			return nil, false
+		}
+
+		key := versionedEntryKey{
+			name:     entryKey.Name(),
+			instance: entryKey.Instance(),
+			pool:     payload.VersionInfo().Version().Pool(),
+			epoch:    payload.VersionInfo().Version().Epoch(),
+			vEpoch:   payload.VersionInfo().VersionedEpoch(),
+		}
+
+		if hasInstanceKey(entriesByKey, key) {
 			return nil, false
 		}
 
@@ -170,10 +187,6 @@ func hasInstanceKey(entries map[versionedEntryKey]*domain.InstanceEntry, key ver
 
 func versionedPlainEntryKey(entry *domain.PlainEntry) (versionedEntryKey, bool) {
 	return entryKeyFromPayload(dirPayloadFromPlainEntry(entry))
-}
-
-func versionedInstanceEntryKey(entry *domain.InstanceEntry) (versionedEntryKey, bool) {
-	return entryKeyFromPayload(dirPayloadFromInstanceEntry(entry))
 }
 
 func dirPayloadFromPlainEntry(entry *domain.PlainEntry) (*domain.DirPayload, bool) {
@@ -308,10 +321,10 @@ func instanceNameSet(entries []*domain.InstanceEntry) (map[string]struct{}, bool
 }
 
 func instanceName(entry *domain.InstanceEntry) (string, bool) {
-	payload, ok := dirPayloadFromInstanceEntry(entry)
-	if !ok || payload.Key() == nil {
+	entryKey := entry.EntryKey()
+	if entryKey == nil {
 		return "", false
 	}
 
-	return payload.Key().Instance(), true
+	return entryKey.Instance(), true
 }

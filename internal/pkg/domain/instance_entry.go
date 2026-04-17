@@ -26,15 +26,15 @@ func (e *InstanceEntry) Name() string {
 	return e.key.name
 }
 
+func (e *InstanceEntry) EntryKey() *Key {
+	return e.key
+}
+
 func (e *InstanceEntry) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
 
 func (e *InstanceEntry) Payload() *DirPayload {
-	if e == nil {
-		return nil
-	}
-
 	return NewDirPayload(
 		e.key,
 		e.versionInfo,
