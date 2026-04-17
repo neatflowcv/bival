@@ -3,7 +3,8 @@ package domain
 type DirEntryParams struct {
 	Kind        string
 	Index       []byte
-	Key         *Key
+	Name        string
+	Instance    string
 	VersionInfo *DirVersionInfo
 	State       *DirState
 	Meta        *Meta

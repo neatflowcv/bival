@@ -5,20 +5,12 @@ func IsVersionPair(plain *PlainEntry, instance *InstanceEntry) bool {
 		return false
 	}
 
-	return equalKey(plain.key, instance.key) &&
+	return plain.name == instance.name &&
+		plain.instance == instance.instance &&
 		equalVersionInfo(plain.versionInfo, instance.versionInfo) &&
 		equalStateWithoutTag(plain.state, instance.state) &&
 		equalMeta(plain.meta, instance.meta) &&
 		equalPendingMaps(plain.pendingMaps, instance.pendingMaps)
-}
-
-func equalKey(left *Key, right *Key) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
-
-	return left.name == right.name &&
-		left.instance == right.instance
 }
 
 func equalVersionInfo(left *DirVersionInfo, right *DirVersionInfo) bool {

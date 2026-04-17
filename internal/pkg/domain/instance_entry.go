@@ -3,7 +3,8 @@ package domain
 type InstanceEntry struct {
 	kind        string
 	index       []byte
-	key         *Key
+	name        string
+	instance    string
 	versionInfo *DirVersionInfo
 	state       *DirState
 	meta        *Meta
@@ -14,7 +15,8 @@ func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
 	return &InstanceEntry{
 		kind:        p.Kind,
 		index:       p.Index,
-		key:         p.Key,
+		name:        p.Name,
+		instance:    p.Instance,
 		versionInfo: p.VersionInfo,
 		state:       p.State,
 		meta:        p.Meta,
@@ -23,11 +25,11 @@ func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
 }
 
 func (e *InstanceEntry) Name() string {
-	return e.key.name
+	return e.name
 }
 
-func (e *InstanceEntry) EntryKey() *Key {
-	return e.key
+func (e *InstanceEntry) Instance() string {
+	return e.instance
 }
 
 func (e *InstanceEntry) VersionPool() int {
@@ -48,7 +50,8 @@ func (e *InstanceEntry) HasPendingMap() bool {
 
 func (e *InstanceEntry) Payload() *DirPayload {
 	return NewDirPayload(
-		e.key,
+		e.name,
+		e.instance,
 		e.versionInfo,
 		e.state,
 		e.meta,

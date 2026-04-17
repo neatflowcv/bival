@@ -776,9 +776,10 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 
 	return domain.NewPlainEntry(
 		domain.DirEntryParams{
-			Kind:  "plain",
-			Index: []byte(idx),
-			Key:   domain.NewKey(fixture.name, fixture.instance),
+			Kind:     "plain",
+			Index:    []byte(idx),
+			Name:     fixture.name,
+			Instance: fixture.instance,
 			VersionInfo: domain.NewDirVersionInfo(
 				domain.NewVersion(fixture.pool, fixture.epoch),
 				fixture.versionedEpoch,
@@ -813,9 +814,10 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 
 	return domain.NewInstanceEntry(
 		domain.DirEntryParams{
-			Kind:  "instance",
-			Index: []byte(versionedInstanceIndex(fixture.instance)),
-			Key:   domain.NewKey(fixture.name, fixture.instance),
+			Kind:     "instance",
+			Index:    []byte(versionedInstanceIndex(fixture.instance)),
+			Name:     fixture.name,
+			Instance: fixture.instance,
 			VersionInfo: domain.NewDirVersionInfo(
 				domain.NewVersion(fixture.pool, fixture.epoch),
 				fixture.versionedEpoch,
@@ -862,9 +864,10 @@ func newCustomPlainEntry(
 
 	return domain.NewPlainEntry(
 		domain.DirEntryParams{
-			Kind:  "plain",
-			Index: []byte(idx),
-			Key:   domain.NewKey(name, instance),
+			Kind:     "plain",
+			Index:    []byte(idx),
+			Name:     name,
+			Instance: instance,
 			VersionInfo: domain.NewDirVersionInfo(
 				domain.NewVersion(pool, epoch),
 				0,

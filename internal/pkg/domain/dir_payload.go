@@ -1,7 +1,8 @@
 package domain
 
 type DirPayload struct {
-	key         *Key
+	name        string
+	instance    string
 	versionInfo *DirVersionInfo
 	state       *DirState
 	meta        *Meta
@@ -9,14 +10,16 @@ type DirPayload struct {
 }
 
 func NewDirPayload(
-	key *Key,
+	name string,
+	instance string,
 	versionInfo *DirVersionInfo,
 	state *DirState,
 	meta *Meta,
 	pendingMaps []*PendingMap,
 ) *DirPayload {
 	return &DirPayload{
-		key:         key,
+		name:        name,
+		instance:    instance,
 		versionInfo: versionInfo,
 		state:       state,
 		meta:        meta,
@@ -24,12 +27,20 @@ func NewDirPayload(
 	}
 }
 
-func (p *DirPayload) Key() *Key {
+func (p *DirPayload) Name() string {
 	if p == nil {
-		return nil
+		return ""
 	}
 
-	return p.key
+	return p.name
+}
+
+func (p *DirPayload) Instance() string {
+	if p == nil {
+		return ""
+	}
+
+	return p.instance
 }
 
 func (p *DirPayload) VersionInfo() *DirVersionInfo {

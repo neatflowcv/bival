@@ -5,7 +5,8 @@ import "time"
 type PlainEntry struct {
 	kind        string
 	index       []byte
-	key         *Key
+	name        string
+	instance    string
 	versionInfo *DirVersionInfo
 	state       *DirState
 	meta        *Meta
@@ -16,7 +17,8 @@ func NewPlainEntry(p DirEntryParams) *PlainEntry {
 	return &PlainEntry{
 		kind:        p.Kind,
 		index:       p.Index,
-		key:         p.Key,
+		name:        p.Name,
+		instance:    p.Instance,
 		versionInfo: p.VersionInfo,
 		state:       p.State,
 		meta:        p.Meta,
@@ -29,11 +31,11 @@ func (e *PlainEntry) Index() string {
 }
 
 func (e *PlainEntry) Name() string {
-	return e.key.name
+	return e.name
 }
 
 func (e *PlainEntry) Instance() string {
-	return e.key.instance
+	return e.instance
 }
 
 func (e *PlainEntry) VersionPool() int {
@@ -70,7 +72,8 @@ func (e *PlainEntry) HasPendingMap() bool {
 
 func (e *PlainEntry) Payload() *DirPayload {
 	return NewDirPayload(
-		e.key,
+		e.name,
+		e.instance,
 		e.versionInfo,
 		e.state,
 		e.meta,

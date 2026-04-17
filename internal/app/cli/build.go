@@ -52,9 +52,10 @@ func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
 	}
 
 	return domain.DirEntryParams{
-		Kind:  record.Type,
-		Index: []byte(record.Idx),
-		Key:   domain.NewKey(record.Entry.Name, record.Entry.Instance),
+		Kind:     record.Type,
+		Index:    []byte(record.Idx),
+		Name:     record.Entry.Name,
+		Instance: record.Entry.Instance,
 		VersionInfo: domain.NewDirVersionInfo(
 			domain.NewVersion(record.Entry.Ver.Pool, record.Entry.Ver.Epoch),
 			record.Entry.VersionedEpoch,

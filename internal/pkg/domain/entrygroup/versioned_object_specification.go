@@ -63,7 +63,7 @@ func isValidVersionedHeadPlainEntry(entry *domain.PlainEntry) bool {
 
 func headPlainPayload(entry *domain.PlainEntry) (*domain.DirPayload, bool) {
 	payload := entry.Payload()
-	if payload == nil || payload.Key() == nil || payload.VersionInfo() == nil || payload.VersionInfo().Version() == nil {
+	if payload == nil || payload.Name() == "" || payload.VersionInfo() == nil || payload.VersionInfo().Version() == nil {
 		return nil, false
 	}
 
@@ -141,14 +141,13 @@ func buildPlainEntryMap(entries []*domain.PlainEntry) (map[versionedEntryKey]*do
 func buildInstanceEntryMap(entries []*domain.InstanceEntry) (map[versionedEntryKey]*domain.InstanceEntry, bool) {
 	entriesByKey := make(map[versionedEntryKey]*domain.InstanceEntry, len(entries))
 	for _, entry := range entries {
-		entryKey := entry.EntryKey()
-		if entryKey == nil || entryKey.Name() == "" {
+		if entry.Name() == "" {
 			return nil, false
 		}
 
 		key := versionedEntryKey{
-			name:     entryKey.Name(),
-			instance: entryKey.Instance(),
+			name:     entry.Name(),
+			instance: entry.Instance(),
 			pool:     entry.VersionPool(),
 			epoch:    entry.VersionEpoch(),
 			vEpoch:   entry.VersionedEpoch(),
@@ -190,17 +189,17 @@ func dirPayloadFromPlainEntry(entry *domain.PlainEntry) (*domain.DirPayload, boo
 }
 
 func entryKeyFromPayload(payload *domain.DirPayload, ok bool) (versionedEntryKey, bool) {
-	if !ok || payload == nil || payload.Key() == nil {
+	if !ok || payload == nil || payload.Name() == "" {
 		return invalidVersionedEntryKey(), false
 	}
 
-	if payload.Key().Name() == "" || payload.VersionInfo() == nil || payload.VersionInfo().Version() == nil {
+	if payload.VersionInfo() == nil || payload.VersionInfo().Version() == nil {
 		return invalidVersionedEntryKey(), false
 	}
 
 	return versionedEntryKey{
-		name:     payload.Key().Name(),
-		instance: payload.Key().Instance(),
+		name:     payload.Name(),
+		instance: payload.Instance(),
 		pool:     payload.VersionInfo().Version().Pool(),
 		epoch:    payload.VersionInfo().Version().Epoch(),
 		vEpoch:   payload.VersionInfo().VersionedEpoch(),
@@ -266,10 +265,9 @@ func instanceNameSet(entries []*domain.InstanceEntry) (map[string]struct{}, bool
 }
 
 func instanceName(entry *domain.InstanceEntry) (string, bool) {
-	entryKey := entry.EntryKey()
-	if entryKey == nil {
+	if entry.Name() == "" {
 		return "", false
 	}
 
-	return entryKey.Instance(), true
+	return entry.Instance(), true
 }
