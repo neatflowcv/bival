@@ -57,11 +57,11 @@ func (e *PlainEntry) Exists() bool {
 }
 
 func (e *PlainEntry) MTime() time.Time {
-	return e.meta.auditInfo.mTime
+	return e.meta.mTime
 }
 
 func (e *PlainEntry) ETag() string {
-	return e.meta.auditInfo.eTag
+	return e.meta.eTag
 }
 
 func (e *PlainEntry) Tag() string {

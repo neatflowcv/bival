@@ -18,61 +18,30 @@ func TestObjectSpecIsDefault(t *testing.T) {
 	require.False(t, domain.NewObjectSpec(0, 0, 0, true).IsDefault())
 }
 
-func TestAuditInfoIsDefault(t *testing.T) {
-	t.Parallel()
-
-	require.True(t, domain.NewAuditInfo(time.Time{}, "").IsDefault())
-	require.False(t, domain.NewAuditInfo(time.Unix(1, 0), "").IsDefault())
-	require.False(t, domain.NewAuditInfo(time.Time{}, "etag").IsDefault())
-}
-
 func TestMetaIsDefault(t *testing.T) {
 	t.Parallel()
 
-	defaultMeta := domain.NewMeta(
-		domain.NewObjectSpec(0, 0, 0, false),
-		domain.NewAuditInfo(time.Time{}, ""),
-		"",
-		"",
-		"",
-		"",
-	)
-	nonDefaultMeta := domain.NewMeta(
-		domain.NewObjectSpec(1, 0, 0, false),
-		domain.NewAuditInfo(time.Time{}, ""),
-		"",
-		"",
-		"",
-		"",
-	)
-	nonDefaultContentMeta := domain.NewMeta(
-		domain.NewObjectSpec(0, 0, 0, false),
-		domain.NewAuditInfo(time.Time{}, ""),
-		"STANDARD",
-		"",
-		"",
-		"",
-	)
-	nonDefaultOwnerMeta := domain.NewMeta(
-		domain.NewObjectSpec(0, 0, 0, false),
-		domain.NewAuditInfo(time.Time{}, ""),
-		"",
-		"",
-		"user",
-		"",
-	)
-	missingPartMeta := domain.NewMeta(
-		nil,
-		domain.NewAuditInfo(time.Time{}, ""),
-		"",
-		"",
-		"",
-		"",
-	)
+	require.True(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Time{}, "", "").IsDefault())
+	require.False(t, newMetaForTest(domain.NewObjectSpec(1, 0, 0, false), time.Time{}, "", "").IsDefault())
+	require.False(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Unix(1, 0), "", "").IsDefault())
+	require.False(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Time{}, "STANDARD", "").IsDefault())
+	require.False(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Time{}, "", "user").IsDefault())
+	require.False(t, newMetaForTest(nil, time.Time{}, "", "").IsDefault())
+}
 
-	require.True(t, defaultMeta.IsDefault())
-	require.False(t, nonDefaultMeta.IsDefault())
-	require.False(t, nonDefaultContentMeta.IsDefault())
-	require.False(t, nonDefaultOwnerMeta.IsDefault())
-	require.False(t, missingPartMeta.IsDefault())
+func newMetaForTest(
+	objectSpec *domain.ObjectSpec,
+	mTime time.Time,
+	storageClass string,
+	ownerUserID string,
+) *domain.Meta {
+	return domain.NewMeta(
+		objectSpec,
+		mTime,
+		"",
+		storageClass,
+		"",
+		ownerUserID,
+		"",
+	)
 }
