@@ -48,7 +48,7 @@ func hasVersionedEntryCounts(group *EntryGroup) bool {
 		group.PlainCount() == group.InstanceCount()+1
 }
 
-func hasValidVersionPairs(plainEntries []*domain.Plain, instanceEntries []*domain.InstanceEntry) bool {
+func hasValidVersionPairs(plainEntries []*domain.Plain, instanceEntries []*domain.Instance) bool {
 	if len(plainEntries) == 0 || len(plainEntries) != len(instanceEntries) {
 		return false
 	}
@@ -102,8 +102,8 @@ func buildPlainEntryMap(entries []*domain.Plain) (map[versionedEntryKey]*domain.
 	return entriesByKey, true
 }
 
-func buildInstanceEntryMap(entries []*domain.InstanceEntry) (map[versionedEntryKey]*domain.InstanceEntry, bool) {
-	entriesByKey := make(map[versionedEntryKey]*domain.InstanceEntry, len(entries))
+func buildInstanceEntryMap(entries []*domain.Instance) (map[versionedEntryKey]*domain.Instance, bool) {
+	entriesByKey := make(map[versionedEntryKey]*domain.Instance, len(entries))
 	for _, entry := range entries {
 		if entry.Name() == "" {
 			return nil, false
@@ -133,13 +133,13 @@ func hasPlainKey(entries map[versionedEntryKey]*domain.Plain, key versionedEntry
 	return exists
 }
 
-func hasInstanceKey(entries map[versionedEntryKey]*domain.InstanceEntry, key versionedEntryKey) bool {
+func hasInstanceKey(entries map[versionedEntryKey]*domain.Instance, key versionedEntryKey) bool {
 	_, exists := entries[key]
 
 	return exists
 }
 
-func hasValidOLHReference(olhEntries []*domain.OLH, instanceEntries []*domain.InstanceEntry) bool {
+func hasValidOLHReference(olhEntries []*domain.OLH, instanceEntries []*domain.Instance) bool {
 	olhEntry, olhEntryOK := singleValidOLHEntry(olhEntries)
 	if !olhEntryOK {
 		return false
@@ -173,7 +173,7 @@ func singleValidOLHEntry(entries []*domain.OLH) (*domain.OLH, bool) {
 	return entry, true
 }
 
-func instanceNameSet(entries []*domain.InstanceEntry) (map[string]struct{}, bool) {
+func instanceNameSet(entries []*domain.Instance) (map[string]struct{}, bool) {
 	set := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		instance, ok := instanceName(entry)
@@ -187,7 +187,7 @@ func instanceNameSet(entries []*domain.InstanceEntry) (map[string]struct{}, bool
 	return set, true
 }
 
-func instanceName(entry *domain.InstanceEntry) (string, bool) {
+func instanceName(entry *domain.Instance) (string, bool) {
 	if entry.Name() == "" {
 		return "", false
 	}

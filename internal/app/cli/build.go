@@ -19,7 +19,7 @@ func buildEntry(record *bilist.Record) (any, error) {
 			return nil, err
 		}
 
-		return domain.NewInstanceEntry(params), nil
+		return domain.NewInstance(params), nil
 	case "plain":
 		params, err := newDirEntryParams(record)
 		if err != nil {

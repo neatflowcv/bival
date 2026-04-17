@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-type InstanceEntry struct {
+type Instance struct {
 	kind             string
 	index            []byte
 	name             string
@@ -27,8 +27,8 @@ type InstanceEntry struct {
 	pendingMaps      []*PendingMap
 }
 
-func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
-	return &InstanceEntry{
+func NewInstance(p DirEntryParams) *Instance {
+	return &Instance{
 		kind:             p.Kind,
 		index:            p.Index,
 		name:             p.Name,
@@ -54,31 +54,31 @@ func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
 	}
 }
 
-func (e *InstanceEntry) Name() string {
+func (e *Instance) Name() string {
 	return e.name
 }
 
-func (e *InstanceEntry) Instance() string {
+func (e *Instance) Instance() string {
 	return e.instance
 }
 
-func (e *InstanceEntry) VersionPool() int {
+func (e *Instance) VersionPool() int {
 	return e.pool
 }
 
-func (e *InstanceEntry) VersionEpoch() int {
+func (e *Instance) VersionEpoch() int {
 	return e.epoch
 }
 
-func (e *InstanceEntry) VersionedEpoch() int {
+func (e *Instance) VersionedEpoch() int {
 	return e.vEpoch
 }
 
-func (e *InstanceEntry) HasPendingMap() bool {
+func (e *Instance) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
 
-func (e *InstanceEntry) Payload() *DirPayload {
+func (e *Instance) Payload() *DirPayload {
 	return NewDirPayload(
 		e.name,
 		e.instance,

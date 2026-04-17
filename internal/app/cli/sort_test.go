@@ -234,7 +234,7 @@ func TestBuildEntryPreservesPendingPresence(t *testing.T) {
 	require.True(t, isPlain)
 	require.True(t, plainTyped.HasPendingMap())
 
-	instanceTyped, isInstance := instanceEntry.(*domain.InstanceEntry)
+	instanceTyped, isInstance := instanceEntry.(*domain.Instance)
 	require.True(t, isInstance)
 	require.True(t, instanceTyped.HasPendingMap())
 

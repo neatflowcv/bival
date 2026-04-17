@@ -101,7 +101,7 @@ func addRecordToGroup(group *entrygroup.EntryGroup, record *bilist.Record) error
 	switch typed := entry.(type) {
 	case *domain.Plain:
 		err = group.AddPlain(typed)
-	case *domain.InstanceEntry:
+	case *domain.Instance:
 		err = group.AddInstance(typed)
 	case *domain.OLH:
 		err = group.AddOLH(typed)

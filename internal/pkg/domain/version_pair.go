@@ -1,6 +1,6 @@
 package domain
 
-func IsVersionPair(plain *Plain, instance *InstanceEntry) bool {
+func IsVersionPair(plain *Plain, instance *Instance) bool {
 	if plain == nil || instance == nil {
 		return false
 	}
@@ -13,19 +13,19 @@ func IsVersionPair(plain *Plain, instance *InstanceEntry) bool {
 		equalPendingMaps(plain.pendingMaps, instance.pendingMaps)
 }
 
-func equalEntryVersion(plain *Plain, instance *InstanceEntry) bool {
+func equalEntryVersion(plain *Plain, instance *Instance) bool {
 	return plain.pool == instance.pool &&
 		plain.epoch == instance.epoch &&
 		plain.vEpoch == instance.vEpoch
 }
 
-func equalEntryState(plain *Plain, instance *InstanceEntry) bool {
+func equalEntryState(plain *Plain, instance *Instance) bool {
 	return plain.locator == instance.locator &&
 		plain.exists == instance.exists &&
 		plain.flags == instance.flags
 }
 
-func equalEntryMeta(plain *Plain, instance *InstanceEntry) bool {
+func equalEntryMeta(plain *Plain, instance *Instance) bool {
 	return plain.category == instance.category &&
 		plain.size == instance.size &&
 		plain.accountedSize == instance.accountedSize &&

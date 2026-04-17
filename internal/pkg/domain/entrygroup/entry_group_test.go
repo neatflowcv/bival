@@ -679,7 +679,7 @@ func newUnversionedPlainEntry() *domain.Plain {
 	)
 }
 
-func newInstanceEntry(name string, pending bool) *domain.InstanceEntry {
+func newInstanceEntry(name string, pending bool) *domain.Instance {
 	fixture := defaultVersionedFixture("v1")
 	fixture.name = name
 
@@ -802,13 +802,13 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 	)
 }
 
-func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEntry {
+func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.Instance {
 	var pendingMaps []*domain.PendingMap
 	if fixture.pendingMap {
 		pendingMaps = []*domain.PendingMap{nil}
 	}
 
-	return domain.NewInstanceEntry(
+	return domain.NewInstance(
 		domain.DirEntryParams{
 			Kind:             "instance",
 			Index:            []byte(versionedInstanceIndex(fixture.instance)),
