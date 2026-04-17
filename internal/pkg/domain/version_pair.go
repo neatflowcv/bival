@@ -78,15 +78,7 @@ func equalPendingMap(left *PendingMap, right *PendingMap) bool {
 	}
 
 	return left.key == right.key &&
-		equalPendingMapVal(left.val, right.val)
-}
-
-func equalPendingMapVal(left *PendingMapVal, right *PendingMapVal) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
-
-	return left.state == right.state &&
+		left.state == right.state &&
 		left.timestamp.Equal(right.timestamp) &&
 		left.op == right.op
 }
