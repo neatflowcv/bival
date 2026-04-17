@@ -775,7 +775,7 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 	}
 
 	return domain.NewPlainEntry(
-		domain.NewDirEntry(domain.DirEntryParams{
+		domain.DirEntryParams{
 			Kind:  "plain",
 			Index: []byte(idx),
 			Key:   domain.NewKey(fixture.name, fixture.instance),
@@ -801,7 +801,7 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 				domain.NewOwner(fixture.owner, fixture.ownerDisplay),
 			),
 			PendingMaps: pendingMaps,
-		}),
+		},
 	)
 }
 
@@ -861,7 +861,7 @@ func newCustomPlainEntry(
 	}
 
 	return domain.NewPlainEntry(
-		domain.NewDirEntry(domain.DirEntryParams{
+		domain.DirEntryParams{
 			Kind:  "plain",
 			Index: []byte(idx),
 			Key:   domain.NewKey(name, instance),
@@ -882,7 +882,7 @@ func newCustomPlainEntry(
 				domain.NewOwner("", ""),
 			),
 			PendingMaps: pendingMaps,
-		}),
+		},
 	)
 }
 

@@ -3,69 +3,77 @@ package domain
 import "time"
 
 type PlainEntry struct {
-	entry *DirEntry
+	kind        string
+	index       []byte
+	key         *Key
+	versionInfo *DirVersionInfo
+	state       *DirState
+	meta        *Meta
+	pendingMaps []*PendingMap
 }
 
-func NewPlainEntry(entry *DirEntry) *PlainEntry {
+func NewPlainEntry(p DirEntryParams) *PlainEntry {
 	return &PlainEntry{
-		entry: entry,
+		kind:        p.Kind,
+		index:       p.Index,
+		key:         p.Key,
+		versionInfo: p.VersionInfo,
+		state:       p.State,
+		meta:        p.Meta,
+		pendingMaps: p.PendingMaps,
 	}
 }
 
 func (e *PlainEntry) Index() string {
-	return e.entry.indexString()
+	return string(e.index)
 }
 
 func (e *PlainEntry) Name() string {
-	return e.entry.key.name
+	return e.key.name
 }
 
 func (e *PlainEntry) Instance() string {
-	return e.entry.key.instance
+	return e.key.instance
 }
 
 func (e *PlainEntry) VersionPool() int {
-	return e.entry.versionInfo.Version().Pool()
+	return e.versionInfo.Version().Pool()
 }
 
 func (e *PlainEntry) VersionEpoch() int {
-	return e.entry.versionInfo.Version().Epoch()
+	return e.versionInfo.Version().Epoch()
 }
 
 func (e *PlainEntry) Exists() bool {
-	return e.entry.state.exists
+	return e.state.exists
 }
 
 func (e *PlainEntry) MTime() time.Time {
-	return e.entry.meta.auditInfo.mTime
+	return e.meta.auditInfo.mTime
 }
 
 func (e *PlainEntry) ETag() string {
-	return e.entry.meta.auditInfo.eTag
+	return e.meta.auditInfo.eTag
 }
 
 func (e *PlainEntry) Tag() string {
-	return e.entry.state.tag
+	return e.state.tag
 }
 
 func (e *PlainEntry) Flags() int {
-	return e.entry.state.flags
+	return e.state.flags
 }
 
 func (e *PlainEntry) HasPendingMap() bool {
-	return e.entry.hasPendingMap()
+	return len(e.pendingMaps) > 0
 }
 
 func (e *PlainEntry) Payload() *DirPayload {
-	if e == nil || e.entry == nil {
-		return nil
-	}
-
 	return NewDirPayload(
-		e.entry.key,
-		e.entry.versionInfo,
-		e.entry.state,
-		e.entry.meta,
-		e.entry.pendingMaps,
+		e.key,
+		e.versionInfo,
+		e.state,
+		e.meta,
+		e.pendingMaps,
 	)
 }

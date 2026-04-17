@@ -1,15 +1,15 @@
 package domain
 
 func IsVersionPair(plain *PlainEntry, instance *InstanceEntry) bool {
-	if plain == nil || plain.entry == nil || instance == nil {
+	if plain == nil || instance == nil {
 		return false
 	}
 
-	return equalKey(plain.entry.key, instance.key) &&
-		equalVersionInfo(plain.entry.versionInfo, instance.versionInfo) &&
-		equalStateWithoutTag(plain.entry.state, instance.state) &&
-		equalMeta(plain.entry.meta, instance.meta) &&
-		equalPendingMaps(plain.entry.pendingMaps, instance.pendingMaps)
+	return equalKey(plain.key, instance.key) &&
+		equalVersionInfo(plain.versionInfo, instance.versionInfo) &&
+		equalStateWithoutTag(plain.state, instance.state) &&
+		equalMeta(plain.meta, instance.meta) &&
+		equalPendingMaps(plain.pendingMaps, instance.pendingMaps)
 }
 
 func equalKey(left *Key, right *Key) bool {

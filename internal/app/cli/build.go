@@ -26,7 +26,7 @@ func buildEntry(record *bilist.Record) (any, error) {
 			return nil, err
 		}
 
-		return domain.NewPlainEntry(domain.NewDirEntry(params)), nil
+		return domain.NewPlainEntry(params), nil
 	case "olh":
 		return domain.NewOLH(domain.OLHParams{
 			Kind:           record.Type,
