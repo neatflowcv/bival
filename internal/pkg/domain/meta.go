@@ -3,7 +3,8 @@ package domain
 type Meta struct {
 	objectSpec       *ObjectSpec
 	auditInfo        *AuditInfo
-	contentInfo      *ContentInfo
+	storageClass     string
+	contentType      string
 	ownerUserID      string
 	ownerDisplayName string
 }
@@ -11,14 +12,16 @@ type Meta struct {
 func NewMeta(
 	objectSpec *ObjectSpec,
 	auditInfo *AuditInfo,
-	contentInfo *ContentInfo,
+	storageClass string,
+	contentType string,
 	ownerUserID string,
 	ownerDisplayName string,
 ) *Meta {
 	return &Meta{
 		objectSpec:       objectSpec,
 		auditInfo:        auditInfo,
-		contentInfo:      contentInfo,
+		storageClass:     storageClass,
+		contentType:      contentType,
 		ownerUserID:      ownerUserID,
 		ownerDisplayName: ownerDisplayName,
 	}
@@ -27,10 +30,10 @@ func NewMeta(
 func (m *Meta) IsDefault() bool {
 	return m.objectSpec != nil &&
 		m.auditInfo != nil &&
-		m.contentInfo != nil &&
 		m.objectSpec.IsDefault() &&
 		m.auditInfo.IsDefault() &&
-		m.contentInfo.IsDefault() &&
+		m.storageClass == "" &&
+		m.contentType == "" &&
 		m.ownerUserID == "" &&
 		m.ownerDisplayName == ""
 }
@@ -38,6 +41,5 @@ func (m *Meta) IsDefault() bool {
 func (m *Meta) HasParts() bool {
 	return m != nil &&
 		m.objectSpec != nil &&
-		m.auditInfo != nil &&
-		m.contentInfo != nil
+		m.auditInfo != nil
 }
