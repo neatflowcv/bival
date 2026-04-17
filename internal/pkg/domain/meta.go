@@ -3,7 +3,10 @@ package domain
 import "time"
 
 type Meta struct {
-	objectSpec       *ObjectSpec
+	category         int
+	size             int64
+	accountedSize    int64
+	appendable       bool
 	mTime            time.Time
 	eTag             string
 	storageClass     string
@@ -13,7 +16,10 @@ type Meta struct {
 }
 
 func NewMeta(
-	objectSpec *ObjectSpec,
+	category int,
+	size int64,
+	accountedSize int64,
+	appendable bool,
 	mTime time.Time,
 	eTag string,
 	storageClass string,
@@ -22,7 +28,10 @@ func NewMeta(
 	ownerDisplayName string,
 ) *Meta {
 	return &Meta{
-		objectSpec:       objectSpec,
+		category:         category,
+		size:             size,
+		accountedSize:    accountedSize,
+		appendable:       appendable,
 		mTime:            mTime,
 		eTag:             eTag,
 		storageClass:     storageClass,
@@ -33,8 +42,10 @@ func NewMeta(
 }
 
 func (m *Meta) IsDefault() bool {
-	return m.objectSpec != nil &&
-		m.objectSpec.IsDefault() &&
+	return m.category == 0 &&
+		m.size == 0 &&
+		m.accountedSize == 0 &&
+		!m.appendable &&
 		m.mTime.IsZero() &&
 		m.eTag == "" &&
 		m.storageClass == "" &&
@@ -44,6 +55,5 @@ func (m *Meta) IsDefault() bool {
 }
 
 func (m *Meta) HasParts() bool {
-	return m != nil &&
-		m.objectSpec != nil
+	return m != nil
 }

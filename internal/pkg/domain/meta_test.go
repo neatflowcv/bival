@@ -8,35 +8,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestObjectSpecIsDefault(t *testing.T) {
-	t.Parallel()
-
-	require.True(t, domain.NewObjectSpec(0, 0, 0, false).IsDefault())
-	require.False(t, domain.NewObjectSpec(1, 0, 0, false).IsDefault())
-	require.False(t, domain.NewObjectSpec(0, 1, 0, false).IsDefault())
-	require.False(t, domain.NewObjectSpec(0, 0, 1, false).IsDefault())
-	require.False(t, domain.NewObjectSpec(0, 0, 0, true).IsDefault())
-}
-
 func TestMetaIsDefault(t *testing.T) {
 	t.Parallel()
 
-	require.True(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Time{}, "", "").IsDefault())
-	require.False(t, newMetaForTest(domain.NewObjectSpec(1, 0, 0, false), time.Time{}, "", "").IsDefault())
-	require.False(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Unix(1, 0), "", "").IsDefault())
-	require.False(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Time{}, "STANDARD", "").IsDefault())
-	require.False(t, newMetaForTest(domain.NewObjectSpec(0, 0, 0, false), time.Time{}, "", "user").IsDefault())
-	require.False(t, newMetaForTest(nil, time.Time{}, "", "").IsDefault())
+	require.True(t, newMetaForTest(0, 0, 0, false, time.Time{}, "", "").IsDefault())
+	require.False(t, newMetaForTest(1, 0, 0, false, time.Time{}, "", "").IsDefault())
+	require.False(t, newMetaForTest(0, 1, 0, false, time.Time{}, "", "").IsDefault())
+	require.False(t, newMetaForTest(0, 0, 1, false, time.Time{}, "", "").IsDefault())
+	require.False(t, newMetaForTest(0, 0, 0, true, time.Time{}, "", "").IsDefault())
+	require.False(t, newMetaForTest(0, 0, 0, false, time.Unix(1, 0), "", "").IsDefault())
+	require.False(t, newMetaForTest(0, 0, 0, false, time.Time{}, "STANDARD", "").IsDefault())
+	require.False(t, newMetaForTest(0, 0, 0, false, time.Time{}, "", "user").IsDefault())
 }
 
 func newMetaForTest(
-	objectSpec *domain.ObjectSpec,
+	category int,
+	size int64,
+	accountedSize int64,
+	appendable bool,
 	mTime time.Time,
 	storageClass string,
 	ownerUserID string,
 ) *domain.Meta {
 	return domain.NewMeta(
-		objectSpec,
+		category,
+		size,
+		accountedSize,
+		appendable,
 		mTime,
 		"",
 		storageClass,

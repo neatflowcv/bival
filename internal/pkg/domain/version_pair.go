@@ -30,24 +30,32 @@ func equalMeta(left *Meta, right *Meta) bool {
 		return left == right
 	}
 
-	return equalObjectSpec(left.objectSpec, right.objectSpec) &&
-		left.mTime.Equal(right.mTime) &&
-		left.eTag == right.eTag &&
-		left.storageClass == right.storageClass &&
-		left.contentType == right.contentType &&
-		left.ownerUserID == right.ownerUserID &&
-		left.ownerDisplayName == right.ownerDisplayName
+	return equalMetaObject(left, right) &&
+		equalMetaAudit(left, right) &&
+		equalMetaContent(left, right) &&
+		equalMetaOwner(left, right)
 }
 
-func equalObjectSpec(left *ObjectSpec, right *ObjectSpec) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
-
+func equalMetaObject(left *Meta, right *Meta) bool {
 	return left.category == right.category &&
 		left.size == right.size &&
 		left.accountedSize == right.accountedSize &&
 		left.appendable == right.appendable
+}
+
+func equalMetaAudit(left *Meta, right *Meta) bool {
+	return left.mTime.Equal(right.mTime) &&
+		left.eTag == right.eTag
+}
+
+func equalMetaContent(left *Meta, right *Meta) bool {
+	return left.storageClass == right.storageClass &&
+		left.contentType == right.contentType
+}
+
+func equalMetaOwner(left *Meta, right *Meta) bool {
+	return left.ownerUserID == right.ownerUserID &&
+		left.ownerDisplayName == right.ownerDisplayName
 }
 
 func equalPendingMaps(left []*PendingMap, right []*PendingMap) bool {

@@ -66,12 +66,10 @@ func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
 		Tag:     record.Entry.Tag,
 		Flags:   record.Entry.Flags,
 		Meta: domain.NewMeta(
-			domain.NewObjectSpec(
-				record.Entry.Meta.Category,
-				record.Entry.Meta.Size,
-				record.Entry.Meta.AccountedSize,
-				record.Entry.Meta.Appendable,
-			),
+			record.Entry.Meta.Category,
+			record.Entry.Meta.Size,
+			record.Entry.Meta.AccountedSize,
+			record.Entry.Meta.Appendable,
 			mTime,
 			record.Entry.Meta.ETag,
 			record.Entry.Meta.StorageClass,
