@@ -3,6 +3,6 @@ package entrygroup
 type ObjectKind string
 
 const (
-	UnversionedObject ObjectKind = "unversioned_object"
-	VersionedObject   ObjectKind = "versioned_object"
+	UnversionedObjectKind ObjectKind = "unversioned_object"
+	VersionedObjectKind   ObjectKind = "versioned_object"
 )

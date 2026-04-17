@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
@@ -125,10 +126,22 @@ func recordName(record *bilist.Record) string {
 }
 
 func logProblem(group *entrygroup.EntryGroup, logger *log.Logger) {
-	reason := group.ProblemReason()
-	if reason == "" {
+	reasons := group.ProblemReason()
+	if len(reasons) == 0 {
 		return
 	}
 
-	logger.Printf("problem name=%q reason=%q", group.Name(), reason)
+	format := "problem name=%q"
+	args := make([]any, 0, len(reasons)+1)
+	args = append(args, group.Name())
+
+	var formatSb137 strings.Builder
+	for _, reason := range reasons {
+		formatSb137.WriteString(" reason=%q")
+
+		args = append(args, reason)
+	}
+	format += formatSb137.String()
+
+	logger.Printf(format, args...)
 }

@@ -7,28 +7,14 @@ func isVersionedHeadCandidate(entry *domain.Plain) bool {
 		entry.Instance() == ""
 }
 
-type versionedEntryKey struct {
-	name     string
-	instance string
-	pool     int
-	epoch    int
-	vEpoch   int
-}
-
-func buildPlainEntryMap(entries []*domain.Plain) (map[versionedEntryKey]*domain.Plain, string) {
-	entriesByKey := make(map[versionedEntryKey]*domain.Plain, len(entries))
+func buildPlainEntryMap(entries []*domain.Plain) (map[string]*domain.Plain, string) {
+	entriesByKey := make(map[string]*domain.Plain, len(entries))
 	for _, entry := range entries {
 		if entry.Name() == "" {
 			return nil, duplicateVersionedEntryKeyReason
 		}
 
-		key := versionedEntryKey{
-			name:     entry.Name(),
-			instance: entry.Instance(),
-			pool:     entry.VersionPool(),
-			epoch:    entry.VersionEpoch(),
-			vEpoch:   entry.VersionedEpoch(),
-		}
+		key := entry.Instance()
 
 		if hasPlainKey(entriesByKey, key) {
 			return nil, duplicateVersionedEntryKeyReason
@@ -40,20 +26,14 @@ func buildPlainEntryMap(entries []*domain.Plain) (map[versionedEntryKey]*domain.
 	return entriesByKey, ""
 }
 
-func buildInstanceEntryMap(entries []*domain.Instance) (map[versionedEntryKey]*domain.Instance, string) {
-	entriesByKey := make(map[versionedEntryKey]*domain.Instance, len(entries))
+func buildInstanceEntryMap(entries []*domain.Instance) (map[string]*domain.Instance, string) {
+	entriesByKey := make(map[string]*domain.Instance, len(entries))
 	for _, entry := range entries {
 		if entry.Name() == "" {
 			return nil, duplicateVersionedEntryKeyReason
 		}
 
-		key := versionedEntryKey{
-			name:     entry.Name(),
-			instance: entry.Instance(),
-			pool:     entry.VersionPool(),
-			epoch:    entry.VersionEpoch(),
-			vEpoch:   entry.VersionedEpoch(),
-		}
+		key := entry.Instance()
 
 		if hasInstanceKey(entriesByKey, key) {
 			return nil, duplicateVersionedEntryKeyReason
@@ -65,24 +45,19 @@ func buildInstanceEntryMap(entries []*domain.Instance) (map[versionedEntryKey]*d
 	return entriesByKey, ""
 }
 
-func hasPlainKey(entries map[versionedEntryKey]*domain.Plain, key versionedEntryKey) bool {
+func hasPlainKey(entries map[string]*domain.Plain, key string) bool {
 	_, exists := entries[key]
 
 	return exists
 }
 
-func hasInstanceKey(entries map[versionedEntryKey]*domain.Instance, key versionedEntryKey) bool {
+func hasInstanceKey(entries map[string]*domain.Instance, key string) bool {
 	_, exists := entries[key]
 
 	return exists
 }
 
-func hasValidOLHReference(olhEntries []*domain.OLH, instanceEntries []*domain.Instance) bool {
-	olhEntry, olhEntryOK := singleValidOLHEntry(olhEntries)
-	if !olhEntryOK {
-		return false
-	}
-
+func hasValidOLHReference(olhEntry *domain.OLH, instanceEntries []*domain.Instance) bool {
 	instanceSet, instanceSetOK := instanceNameSet(instanceEntries)
 	if !instanceSetOK {
 		return false
@@ -94,21 +69,25 @@ func hasValidOLHReference(olhEntries []*domain.OLH, instanceEntries []*domain.In
 	return exists
 }
 
-func singleValidOLHEntry(entries []*domain.OLH) (*domain.OLH, bool) {
+func singleValidOLHEntry(entries []*domain.OLH) (*domain.OLH, string) {
+	if len(entries) == 0 {
+		return nil, missingOLHReason
+	}
+
 	if len(entries) != 1 {
-		return nil, false
+		return nil, invalidOLHReason
 	}
 
 	entry := entries[0]
 	if entry == nil || entry.Name() == "" {
-		return nil, false
+		return nil, invalidOLHReason
 	}
 
 	if entry.HasPendingLog() {
-		return nil, false
+		return nil, invalidOLHReason
 	}
 
-	return entry, true
+	return entry, ""
 }
 
 func instanceNameSet(entries []*domain.Instance) (map[string]struct{}, bool) {

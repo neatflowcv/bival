@@ -15,8 +15,11 @@ const (
 	duplicateVersionedHeadReason      = "duplicate versioned head"
 	invalidVersionedHeadReason        = "invalid versioned head"
 	duplicateVersionedEntryKeyReason  = "duplicate versioned entry key"
+	missingMatchingPlainReason        = "instance version has no matching plain"
 	missingMatchingInstanceReason     = "plain version has no matching instance"
 	mismatchedVersionPairReason       = "plain and instance versions differ"
+	missingOLHReason                  = "missing olh"
+	invalidOLHReason                  = "invalid olh"
 	invalidOLHReferenceReason         = "olh references missing instance"
 	tooManyVersionedEntriesReason     = "too many versioned entries"
 	maxVersionedEntryCount            = 8
@@ -84,28 +87,46 @@ func (g *EntryGroup) HasPendingEntries() bool {
 	return g.HasPendingMap() || g.HasPendingLog()
 }
 
-func (g *EntryGroup) ProblemReason() string {
+func (g *EntryGroup) ProblemReason() []string {
+	reasons := make([]string, 0)
+
 	if g.HasPendingEntries() {
-		return "pending entry exists"
+		reasons = append(reasons, "pending entry exists")
 	}
 
 	if g.isUnversionedObject() {
-		return ""
+		if len(reasons) == 0 {
+			return nil
+		}
+
+		return reasons
 	}
 
-	if g.ObjectKind() == VersionedObject && g.versionedEntryCount() > maxVersionedEntryCount {
-		return tooManyVersionedEntriesReason
+	if g.ObjectKind() == VersionedObjectKind && g.versionedEntryCount() > maxVersionedEntryCount {
+		reasons = append(reasons, tooManyVersionedEntriesReason)
 	}
 
-	return g.versionedProblemReason()
+	_, err := NewVersionedObject(g)
+	if err != nil {
+		errs := splitJoinedErrors(err)
+		for _, errItem := range errs {
+			reasons = append(reasons, errItem.Error())
+		}
+	}
+
+	if len(reasons) == 0 {
+		return nil
+	}
+
+	return reasons
 }
 
 func (g *EntryGroup) ObjectKind() ObjectKind {
 	if g.isUnversionedObject() {
-		return UnversionedObject
+		return UnversionedObjectKind
 	}
 
-	return VersionedObject
+	return VersionedObjectKind
 }
 
 func (g *EntryGroup) AddPlain(entry *domain.Plain) error {
@@ -182,94 +203,4 @@ func (g *EntryGroup) hasUnversionedEntryCounts() bool {
 	return g.PlainCount() == 1 &&
 		g.InstanceCount() == 0 &&
 		g.OLHCount() == 0
-}
-
-func (g *EntryGroup) hasVersionedEntryCounts() bool {
-	return g.PlainCount() >= 2 &&
-		g.InstanceCount() >= 1 &&
-		g.OLHCount() == 1 &&
-		g.PlainCount() == g.InstanceCount()+1
-}
-
-func (g *EntryGroup) versionedProblemReason() string {
-	if !g.hasVersionedEntryCounts() {
-		return invalidVersionedEntryCountsReason
-	}
-
-	pairedPlainEntries, headReason := g.versionedHeadState()
-	if headReason != "" {
-		return headReason
-	}
-
-	pairReason := g.versionedPairReason(pairedPlainEntries)
-	if pairReason != "" {
-		return pairReason
-	}
-
-	if !hasValidOLHReference(g.OLHEntries(), g.InstanceEntries()) {
-		return invalidOLHReferenceReason
-	}
-
-	return ""
-}
-
-func (g *EntryGroup) versionedHeadState() ([]*domain.Plain, string) {
-	headCount := 0
-	invalidHeadCount := 0
-
-	pairedPlainEntries := make([]*domain.Plain, 0, len(g.PlainEntries())-1)
-	for _, entry := range g.PlainEntries() {
-		if entry.IsPlaceholder() {
-			headCount++
-
-			continue
-		}
-
-		if isVersionedHeadCandidate(entry) {
-			invalidHeadCount++
-
-			continue
-		}
-
-		pairedPlainEntries = append(pairedPlainEntries, entry)
-	}
-
-	if headCount == 0 && invalidHeadCount > 0 {
-		return nil, invalidVersionedHeadReason
-	}
-
-	if headCount == 0 {
-		return nil, missingVersionedHeadReason
-	}
-
-	if headCount > 1 {
-		return nil, duplicateVersionedHeadReason
-	}
-
-	return pairedPlainEntries, ""
-}
-
-func (g *EntryGroup) versionedPairReason(pairedPlainEntries []*domain.Plain) string {
-	plainByKey, plainMapReason := buildPlainEntryMap(pairedPlainEntries)
-	if plainMapReason != "" {
-		return plainMapReason
-	}
-
-	instanceByKey, instanceMapReason := buildInstanceEntryMap(g.InstanceEntries())
-	if instanceMapReason != "" {
-		return instanceMapReason
-	}
-
-	for key, plainEntry := range plainByKey {
-		instanceEntry, exists := instanceByKey[key]
-		if !exists {
-			return missingMatchingInstanceReason
-		}
-
-		if !domain.IsVersionPair(plainEntry, instanceEntry) {
-			return mismatchedVersionPairReason
-		}
-	}
-
-	return ""
 }
