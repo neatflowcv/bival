@@ -67,7 +67,7 @@ func headPlainPayload(entry *domain.PlainEntry) (*domain.DirPayload, bool) {
 		return nil, false
 	}
 
-	if payload.State() == nil || payload.Meta() == nil {
+	if payload.Meta() == nil {
 		return nil, false
 	}
 
@@ -84,10 +84,10 @@ func hasHeadVersion(payload *domain.DirPayload) bool {
 }
 
 func hasHeadState(payload *domain.DirPayload) bool {
-	return !payload.State().Exists() &&
-		payload.State().Locator() == "" &&
-		payload.State().Tag() == "" &&
-		payload.State().Flags() == 8 &&
+	return !payload.Exists() &&
+		payload.Locator() == "" &&
+		payload.Tag() == "" &&
+		payload.Flags() == 8 &&
 		len(payload.PendingMaps()) == 0
 }
 

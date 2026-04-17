@@ -61,12 +61,10 @@ func newDirEntryParams(record *bilist.Record) (domain.DirEntryParams, error) {
 			record.Entry.Ver.Epoch,
 			record.Entry.VersionedEpoch,
 		),
-		State: domain.NewDirState(
-			record.Entry.Locator,
-			record.Entry.Exists,
-			record.Entry.Tag,
-			record.Entry.Flags,
-		),
+		Locator: record.Entry.Locator,
+		Exists:  record.Entry.Exists,
+		Tag:     record.Entry.Tag,
+		Flags:   record.Entry.Flags,
 		Meta: domain.NewMeta(
 			domain.NewObjectSpec(
 				record.Entry.Meta.Category,

@@ -4,7 +4,10 @@ type DirPayload struct {
 	name        string
 	instance    string
 	versionInfo *DirVersionInfo
-	state       *DirState
+	locator     string
+	exists      bool
+	tag         string
+	flags       int
 	meta        *Meta
 	pendingMaps []*PendingMap
 }
@@ -13,7 +16,10 @@ func NewDirPayload(
 	name string,
 	instance string,
 	versionInfo *DirVersionInfo,
-	state *DirState,
+	locator string,
+	exists bool,
+	tag string,
+	flags int,
 	meta *Meta,
 	pendingMaps []*PendingMap,
 ) *DirPayload {
@@ -21,7 +27,10 @@ func NewDirPayload(
 		name:        name,
 		instance:    instance,
 		versionInfo: versionInfo,
-		state:       state,
+		locator:     locator,
+		exists:      exists,
+		tag:         tag,
+		flags:       flags,
 		meta:        meta,
 		pendingMaps: pendingMaps,
 	}
@@ -51,12 +60,36 @@ func (p *DirPayload) VersionInfo() *DirVersionInfo {
 	return p.versionInfo
 }
 
-func (p *DirPayload) State() *DirState {
+func (p *DirPayload) Locator() string {
 	if p == nil {
-		return nil
+		return ""
 	}
 
-	return p.state
+	return p.locator
+}
+
+func (p *DirPayload) Exists() bool {
+	if p == nil {
+		return false
+	}
+
+	return p.exists
+}
+
+func (p *DirPayload) Tag() string {
+	if p == nil {
+		return ""
+	}
+
+	return p.tag
+}
+
+func (p *DirPayload) Flags() int {
+	if p == nil {
+		return 0
+	}
+
+	return p.flags
 }
 
 func (p *DirPayload) Meta() *Meta {

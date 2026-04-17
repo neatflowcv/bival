@@ -6,7 +6,10 @@ type DirEntryParams struct {
 	Name        string
 	Instance    string
 	VersionInfo *DirVersionInfo
-	State       *DirState
+	Locator     string
+	Exists      bool
+	Tag         string
+	Flags       int
 	Meta        *Meta
 	PendingMaps []*PendingMap
 }

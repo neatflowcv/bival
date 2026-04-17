@@ -8,7 +8,9 @@ func IsVersionPair(plain *PlainEntry, instance *InstanceEntry) bool {
 	return plain.name == instance.name &&
 		plain.instance == instance.instance &&
 		equalVersionInfo(plain.versionInfo, instance.versionInfo) &&
-		equalStateWithoutTag(plain.state, instance.state) &&
+		plain.locator == instance.locator &&
+		plain.exists == instance.exists &&
+		plain.flags == instance.flags &&
 		equalMeta(plain.meta, instance.meta) &&
 		equalPendingMaps(plain.pendingMaps, instance.pendingMaps)
 }
@@ -21,16 +23,6 @@ func equalVersionInfo(left *DirVersionInfo, right *DirVersionInfo) bool {
 	return left.pool == right.pool &&
 		left.epoch == right.epoch &&
 		left.versionedEpoch == right.versionedEpoch
-}
-
-func equalStateWithoutTag(left *DirState, right *DirState) bool {
-	if left == nil || right == nil {
-		return left == right
-	}
-
-	return left.locator == right.locator &&
-		left.exists == right.exists &&
-		left.flags == right.flags
 }
 
 func equalMeta(left *Meta, right *Meta) bool {

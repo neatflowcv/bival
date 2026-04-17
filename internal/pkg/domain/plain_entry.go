@@ -8,7 +8,10 @@ type PlainEntry struct {
 	name        string
 	instance    string
 	versionInfo *DirVersionInfo
-	state       *DirState
+	locator     string
+	exists      bool
+	tag         string
+	flags       int
 	meta        *Meta
 	pendingMaps []*PendingMap
 }
@@ -20,7 +23,10 @@ func NewPlainEntry(p DirEntryParams) *PlainEntry {
 		name:        p.Name,
 		instance:    p.Instance,
 		versionInfo: p.VersionInfo,
-		state:       p.State,
+		locator:     p.Locator,
+		exists:      p.Exists,
+		tag:         p.Tag,
+		flags:       p.Flags,
 		meta:        p.Meta,
 		pendingMaps: p.PendingMaps,
 	}
@@ -47,7 +53,7 @@ func (e *PlainEntry) VersionEpoch() int {
 }
 
 func (e *PlainEntry) Exists() bool {
-	return e.state.exists
+	return e.exists
 }
 
 func (e *PlainEntry) MTime() time.Time {
@@ -59,11 +65,11 @@ func (e *PlainEntry) ETag() string {
 }
 
 func (e *PlainEntry) Tag() string {
-	return e.state.tag
+	return e.tag
 }
 
 func (e *PlainEntry) Flags() int {
-	return e.state.flags
+	return e.flags
 }
 
 func (e *PlainEntry) HasPendingMap() bool {
@@ -75,7 +81,10 @@ func (e *PlainEntry) Payload() *DirPayload {
 		e.name,
 		e.instance,
 		e.versionInfo,
-		e.state,
+		e.locator,
+		e.exists,
+		e.tag,
+		e.flags,
 		e.meta,
 		e.pendingMaps,
 	)

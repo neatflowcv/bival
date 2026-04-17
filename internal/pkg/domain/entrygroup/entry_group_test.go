@@ -785,12 +785,10 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 				fixture.epoch,
 				fixture.versionedEpoch,
 			),
-			State: domain.NewDirState(
-				"",
-				fixture.exists,
-				fixture.tag,
-				fixture.flags,
-			),
+			Locator: "",
+			Exists:  fixture.exists,
+			Tag:     fixture.tag,
+			Flags:   fixture.flags,
 			Meta: domain.NewMeta(
 				domain.NewObjectSpec(
 					fixture.category,
@@ -824,12 +822,10 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.InstanceEn
 				fixture.epoch,
 				fixture.versionedEpoch,
 			),
-			State: domain.NewDirState(
-				"",
-				fixture.exists,
-				fixture.tag,
-				fixture.flags,
-			),
+			Locator: "",
+			Exists:  fixture.exists,
+			Tag:     fixture.tag,
+			Flags:   fixture.flags,
 			Meta: domain.NewMeta(
 				domain.NewObjectSpec(
 					fixture.category,
@@ -875,12 +871,10 @@ func newCustomPlainEntry(
 				epoch,
 				0,
 			),
-			State: domain.NewDirState(
-				"",
-				exists,
-				tag,
-				flags,
-			),
+			Locator: "",
+			Exists:  exists,
+			Tag:     tag,
+			Flags:   flags,
 			Meta: domain.NewMeta(
 				domain.NewObjectSpec(1, 4, 4, false),
 				domain.NewAuditInfo(mtime, etag),

@@ -6,7 +6,10 @@ type InstanceEntry struct {
 	name        string
 	instance    string
 	versionInfo *DirVersionInfo
-	state       *DirState
+	locator     string
+	exists      bool
+	tag         string
+	flags       int
 	meta        *Meta
 	pendingMaps []*PendingMap
 }
@@ -18,7 +21,10 @@ func NewInstanceEntry(p DirEntryParams) *InstanceEntry {
 		name:        p.Name,
 		instance:    p.Instance,
 		versionInfo: p.VersionInfo,
-		state:       p.State,
+		locator:     p.Locator,
+		exists:      p.Exists,
+		tag:         p.Tag,
+		flags:       p.Flags,
 		meta:        p.Meta,
 		pendingMaps: p.PendingMaps,
 	}
@@ -53,7 +59,10 @@ func (e *InstanceEntry) Payload() *DirPayload {
 		e.name,
 		e.instance,
 		e.versionInfo,
-		e.state,
+		e.locator,
+		e.exists,
+		e.tag,
+		e.flags,
 		e.meta,
 		e.pendingMaps,
 	)
