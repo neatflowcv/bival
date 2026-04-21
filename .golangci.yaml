@@ -8,8 +8,9 @@ linters:
     - varnamelen
     - ireturn
     - wsl # deprecated
+    - prealloc # 그냥 내 스타일이 아님
   exclusions:
     rules:
       - linters:
           - lll
-        source: '`[^`]+:"[^"]+"'
+        source: "`[^`]+:\"[^\"]+\""
