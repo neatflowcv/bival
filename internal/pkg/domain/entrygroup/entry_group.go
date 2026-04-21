@@ -10,19 +10,18 @@ import (
 var errEntryGroupNameMismatch = errors.New("entry name does not match group name")
 
 const (
-	invalidVersionedEntryCountsReason = "invalid versioned entry counts"
-	missingVersionedHeadReason        = "missing versioned head"
-	duplicateVersionedHeadReason      = "duplicate versioned head"
-	invalidVersionedHeadReason        = "invalid versioned head"
-	duplicateVersionedEntryKeyReason  = "duplicate versioned entry key"
-	missingMatchingPlainReason        = "instance version has no matching plain"
-	missingMatchingInstanceReason     = "plain version has no matching instance"
-	mismatchedVersionPairReason       = "plain and instance versions differ"
-	missingOLHReason                  = "missing olh"
-	invalidOLHReason                  = "invalid olh"
-	invalidOLHReferenceReason         = "olh references missing instance"
-	tooManyVersionedEntriesReason     = "too many versioned entries"
-	maxVersionedEntryCount            = 8
+	missingVersionedHeadReason       = "missing versioned head"
+	duplicateVersionedHeadReason     = "duplicate versioned head"
+	invalidVersionedHeadReason       = "invalid versioned head"
+	duplicateVersionedEntryKeyReason = "duplicate versioned entry key"
+	missingMatchingPlainReason       = "instance version has no matching plain"
+	missingMatchingInstanceReason    = "plain version has no matching instance"
+	mismatchedVersionPairReason      = "plain and instance versions differ"
+	missingOLHReason                 = "missing olh"
+	invalidOLHReason                 = "invalid olh"
+	invalidOLHReferenceReason        = "olh references missing instance"
+	tooManyVersionedEntriesReason    = "too many versioned entries"
+	maxVersionedEntryCount           = 8
 )
 
 type EntryGroup struct {
@@ -102,7 +101,7 @@ func (g *EntryGroup) ProblemReason() []string {
 		return reasons
 	}
 
-	if g.ObjectKind() == VersionedObjectKind && g.versionedEntryCount() > maxVersionedEntryCount {
+	if g.versionedEntryCount() > maxVersionedEntryCount {
 		reasons = append(reasons, tooManyVersionedEntriesReason)
 	}
 
@@ -119,14 +118,6 @@ func (g *EntryGroup) ProblemReason() []string {
 	}
 
 	return reasons
-}
-
-func (g *EntryGroup) ObjectKind() ObjectKind {
-	if g.isUnversionedObject() {
-		return UnversionedObjectKind
-	}
-
-	return VersionedObjectKind
 }
 
 func (g *EntryGroup) AddPlain(entry *domain.Plain) error {
