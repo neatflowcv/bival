@@ -2,6 +2,7 @@ package entrygroup_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 	"github.com/neatflowcv/bival/internal/pkg/domain/entrygroup"
@@ -144,6 +145,70 @@ func TestEntryGroupProblemReasonIncludesPendingEntry(t *testing.T) {
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
 	require.Equal(t, []string{"pending entry exists"}, group.ProblemReason())
+}
+
+func TestEntryGroupProblemReasonRejectsMultipleVersionsWhenOLHReferenceIsStale(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionOne.mtime = sampleStaleMTime()
+
+	versionTwo := defaultVersionedFixture("v2")
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	require.Equal(t, []string{"stale olh reference allows only one version"}, group.ProblemReason())
+}
+
+func TestEntryGroupProblemReasonAllowsMultipleVersionsWhenOnlyNonOLHReferenceIsStale(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionOne.mtime = sampleStaleMTime()
+
+	versionTwo := defaultVersionedFixture("v2")
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
+	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v2", false)))
+	require.Empty(t, group.ProblemReason())
+}
+
+func TestEntryGroupProblemReasonRejectsStaleDeleteMarkerOLHWhenVersionsExist(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	version := defaultVersionedFixture("delete-v1")
+	version.mtime = sampleStaleMTime()
+	version.exists = false
+	version.pool = -1
+	version.epoch = 0
+	version.eTag = ""
+	version.tag = "delete-marker"
+	version.flags = 7
+	version.versionedEpoch = 3
+	version.category = 0
+	version.size = 0
+	version.accountedSize = 0
+	version.contentType = ""
+
+	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
+	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(version)))
+	require.NoError(t, group.AddOLH(newCustomVersionedOLHEntry("alpha", "delete-v1", false, true)))
+	require.Equal(t, []string{"stale delete-marker olh allows no versions"}, group.ProblemReason())
 }
 
 func TestEntryGroupClassifierReturnsVersionedObjectWhenNoRuleMatches(t *testing.T) {
@@ -827,15 +892,25 @@ func newCustomPlainEntry(
 }
 
 func sampleMTime() string {
-	return "2026-03-06T03:34:11.918188Z"
+	return sampleMTimeAtOffset(-24 * time.Hour)
 }
 
 func sampleEarlierMTime() string {
-	return "2026-03-06T02:10:28.562296Z"
+	return sampleMTimeAtOffset(-26 * time.Hour)
 }
 
 func sampleDeleteMarkerMTime() string {
-	return "2026-03-06T04:11:07.657765Z"
+	return sampleMTimeAtOffset(-23 * time.Hour)
+}
+
+func sampleStaleMTime() string {
+	return sampleMTimeAtOffset(-8 * 24 * time.Hour)
+}
+
+func sampleMTimeAtOffset(offset time.Duration) string {
+	now := time.Now().UTC().Truncate(time.Second)
+
+	return now.Add(offset).Format(time.RFC3339Nano)
 }
 
 func newOLHEntry(name string, pending bool) *domain.OLH {
@@ -843,6 +918,10 @@ func newOLHEntry(name string, pending bool) *domain.OLH {
 }
 
 func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OLH {
+	return newCustomVersionedOLHEntry(name, instance, pending, false)
+}
+
+func newCustomVersionedOLHEntry(name string, instance string, pending bool, deleteMarker bool) *domain.OLH {
 	var pendingLogs []*domain.PendingLog
 	if pending {
 		pendingLogs = []*domain.PendingLog{nil}
@@ -853,7 +932,7 @@ func newVersionedOLHEntry(name string, instance string, pending bool) *domain.OL
 		Index:          []byte(name),
 		Name:           name,
 		Instance:       instance,
-		DeleteMarker:   false,
+		DeleteMarker:   deleteMarker,
 		PendingRemoval: false,
 		Exists:         false,
 		Epoch:          0,

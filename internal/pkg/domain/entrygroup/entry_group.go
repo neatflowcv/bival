@@ -20,6 +20,8 @@ const (
 	missingOLHReason                 = "missing olh"
 	invalidOLHReason                 = "invalid olh"
 	invalidOLHReferenceReason        = "olh references missing instance"
+	staleOLHReferenceReason          = "stale olh reference allows only one version"
+	staleDeleteMarkerOLHReason       = "stale delete-marker olh allows no versions"
 	tooManyVersionedEntriesReason    = "too many versioned entries"
 	maxVersionedEntryCount           = 8
 )

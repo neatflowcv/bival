@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -196,6 +197,26 @@ func TestAnalyzeFileReportsPendingEntryAndTooManyVersionedEntries(t *testing.T) 
 	)
 }
 
+func TestAnalyzeFileReportsStaleDeleteMarkerOLH(t *testing.T) {
+	t.Parallel()
+
+	inputPath := filepath.Join(t.TempDir(), "input.json")
+	writeRecords(t, inputPath, []map[string]any{
+		versionedHeadRecordMap("alpha"),
+		versionedDeleteMarkerRecordMap("alpha", "delete-v1", sampleStaleVersionedRecordMTime()),
+		versionedDeleteMarkerInstanceRecordMap("alpha", "delete-v1", sampleStaleVersionedRecordMTime()),
+		versionedOLHDeleteMarkerRecordMap("alpha", "delete-v1"),
+	})
+
+	var buf bytes.Buffer
+
+	logger := log.New(&buf, "", 0)
+
+	err := analyzeFile(inputPath, logger)
+	require.NoError(t, err)
+	require.Equal(t, "problem name=\"alpha\" reason=\"stale delete-marker olh allows no versions\"\n", buf.String())
+}
+
 func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 	t.Parallel()
 
@@ -283,7 +304,7 @@ func versionedPlainRecordMap(name string, instance string) map[string]any {
 	meta := map[string]any{
 		"category":           1,
 		"size":               4,
-		"mtime":              "2026-03-06T03:34:11.918188Z",
+		"mtime":              sampleVersionedRecordMTime(),
 		"etag":               "etag",
 		"storage_class":      "",
 		"owner":              "test",
@@ -312,8 +333,48 @@ func versionedPlainRecordMap(name string, instance string) map[string]any {
 	}
 }
 
+func sampleVersionedRecordMTime() string {
+	now := time.Now().UTC().Truncate(time.Second)
+
+	return now.Add(-24 * time.Hour).Format(time.RFC3339Nano)
+}
+
+func sampleStaleVersionedRecordMTime() string {
+	now := time.Now().UTC().Truncate(time.Second)
+
+	return now.Add(-8 * 24 * time.Hour).Format(time.RFC3339Nano)
+}
+
 func versionedInstanceRecordMap(name string, instance string) map[string]any {
 	record := versionedPlainRecordMap(name, instance)
+	record["type"] = "instance"
+	record["idx"] = "\u00801000_" + name + "\u0000i" + instance
+
+	return record
+}
+
+func versionedDeleteMarkerRecordMap(name string, instance string, mtime string) map[string]any {
+	record := versionedPlainRecordMap(name, instance)
+	entry := mustEntryMap(record)
+	meta := mustMetaMap(entry)
+
+	entry["exists"] = false
+	entry["tag"] = "delete-marker"
+	entry["flags"] = 7
+	entry["versioned_epoch"] = 3
+	entry["ver"] = map[string]any{"pool": -1, "epoch": 0}
+	meta["category"] = 0
+	meta["size"] = 0
+	meta["mtime"] = mtime
+	meta["etag"] = ""
+	meta["content_type"] = ""
+	meta["accounted_size"] = 0
+
+	return record
+}
+
+func versionedDeleteMarkerInstanceRecordMap(name string, instance string, mtime string) map[string]any {
+	record := versionedDeleteMarkerRecordMap(name, instance, mtime)
 	record["type"] = "instance"
 	record["idx"] = "\u00801000_" + name + "\u0000i" + instance
 
@@ -339,6 +400,14 @@ func versionedOLHRecordMap(name string, instance string) map[string]any {
 	}
 }
 
+func versionedOLHDeleteMarkerRecordMap(name string, instance string) map[string]any {
+	record := versionedOLHRecordMap(name, instance)
+	entry := mustEntryMap(record)
+	entry["delete_marker"] = true
+
+	return record
+}
+
 func versionedPlainRecordMapWithPendingMap(name string, instance string) map[string]any {
 	record := versionedPlainRecordMap(name, instance)
 
@@ -355,12 +424,27 @@ func versionedPlainRecordMapWithPendingMap(name string, instance string) map[str
 func versionedOLHRecordMapWithPendingLog(name string, instance string) map[string]any {
 	record := versionedOLHRecordMap(name, instance)
 
+	entry := mustEntryMap(record)
+
+	entry["pending_log"] = []any{map[string]any{"op": "test"}}
+
+	return record
+}
+
+func mustEntryMap(record map[string]any) map[string]any {
 	entry, ok := record["entry"].(map[string]any)
 	if !ok {
 		panic("record entry must be a map")
 	}
 
-	entry["pending_log"] = []any{map[string]any{"op": "test"}}
+	return entry
+}
 
-	return record
+func mustMetaMap(entry map[string]any) map[string]any {
+	meta, ok := entry["meta"].(map[string]any)
+	if !ok {
+		panic("record meta must be a map")
+	}
+
+	return meta
 }

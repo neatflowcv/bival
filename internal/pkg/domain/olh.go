@@ -49,6 +49,10 @@ func (e *OLH) Instance() string {
 	return e.instance
 }
 
+func (e *OLH) DeleteMarker() bool {
+	return e.deleteMarker
+}
+
 func (e *OLH) HasPendingLog() bool {
 	return len(e.pendingLogs) > 0
 }

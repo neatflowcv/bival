@@ -10,17 +10,21 @@ import (
 
 var errUnsupportedRecordType = errors.New("unsupported record type")
 
+const recordTypeInstance = "instance"
+const recordTypePlain = "plain"
+const recordTypeOLH = "olh"
+
 func buildEntry(record *bilist.Record) (any, error) {
 	switch record.Type {
-	case "instance":
+	case recordTypeInstance:
 		params := newDirEntryParams(record)
 
 		return domain.NewInstance(params), nil
-	case "plain":
+	case recordTypePlain:
 		params := newDirEntryParams(record)
 
 		return domain.NewPlain(params), nil
-	case "olh":
+	case recordTypeOLH:
 		return domain.NewOLH(domain.OLHParams{
 			Kind:           record.Type,
 			Index:          []byte(record.Idx),

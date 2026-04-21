@@ -16,6 +16,8 @@ var errMismatchedVersionPair = errors.New(mismatchedVersionPairReason)
 var errMissingOLH = errors.New(missingOLHReason)
 var errInvalidOLH = errors.New(invalidOLHReason)
 var errInvalidVersionedOLH = errors.New(invalidOLHReferenceReason)
+var errStaleOLHReference = errors.New(staleOLHReferenceReason)
+var errStaleDeleteMarkerOLH = errors.New(staleDeleteMarkerOLHReason)
 var errPairAlreadyFull = errors.New("pair is already full")
 
 type Pair struct {

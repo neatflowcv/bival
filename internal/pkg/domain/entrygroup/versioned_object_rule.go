@@ -12,6 +12,7 @@ func newVersionedObjectRules() []Rule {
 		versionedEntryKeyRule{},
 		versionedPairRule{},
 		versionedOLHRule{},
+		versionedStaleOLHRule{},
 	}
 }
 

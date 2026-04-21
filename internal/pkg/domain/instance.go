@@ -75,3 +75,7 @@ func (e *Instance) VersionedEpoch() int {
 func (e *Instance) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
+
+func (e *Instance) MTime() string {
+	return e.mTime
+}
