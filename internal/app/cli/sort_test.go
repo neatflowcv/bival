@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/neatflowcv/bival/internal/bilist"
 	"github.com/neatflowcv/bival/internal/pkg/domain"
@@ -269,7 +270,7 @@ func assertBuiltPlainMTime(t *testing.T, value string, want string) {
 			Exists:         true,
 			Tag:            "tag",
 			Flags:          0,
-			PendingMap:     []json.RawMessage{},
+			PendingMap:     []bilist.PendingMap{},
 			VersionedEpoch: 0,
 			Key:            bilist.Key{Name: "", Instance: ""},
 			DeleteMarker:   false,
@@ -410,9 +411,18 @@ func pendingMapEntry(name string, instance string) bilist.Entry {
 			UserData:         "",
 			Appendable:       false,
 		},
-		Tag:            "",
-		Flags:          0,
-		PendingMap:     []json.RawMessage{json.RawMessage(`{"op":"x"}`)},
+		Tag:   "",
+		Flags: 0,
+		PendingMap: []bilist.PendingMap{
+			{
+				Key: "pending-key",
+				Val: bilist.PendingMapVal{
+					State:     0,
+					Timestamp: mustParseTime("2025-02-04T09:47:35.237878Z"),
+					Op:        0,
+				},
+			},
+		},
 		VersionedEpoch: 0,
 		Key:            bilist.Key{Name: "", Instance: ""},
 		DeleteMarker:   false,
@@ -452,11 +462,36 @@ func pendingLogEntry(name string, instance string) bilist.Entry {
 			Name:     name,
 			Instance: instance,
 		},
-		DeleteMarker:   false,
-		Epoch:          0,
-		PendingLog:     []json.RawMessage{json.RawMessage(`{"op":"x"}`)},
+		DeleteMarker: false,
+		Epoch:        0,
+		PendingLog: []bilist.PendingLog{
+			{
+				Key: 5,
+				Val: []bilist.PendingLogVal{
+					{
+						Epoch: 5,
+						Op:    "link_olh",
+						OpTag: "tag",
+						Key: bilist.Key{
+							Name:     name,
+							Instance: instance,
+						},
+						DeleteMarker: false,
+					},
+				},
+			},
+		},
 		PendingRemoval: false,
 	}
 
 	return entry
+}
+
+func mustParseTime(value string) time.Time {
+	result, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }

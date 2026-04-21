@@ -66,17 +66,43 @@ func newDirEntryParams(record *bilist.Record) domain.DirEntryParams {
 }
 
 func newPendingMaps(record *bilist.Record) []*domain.PendingMap {
-	if len(record.Entry.PendingMap) == 0 {
-		return nil
+	var maps []*domain.PendingMap
+	for _, pendingMap := range record.Entry.PendingMap {
+		maps = append(
+			maps,
+			domain.NewPendingMap(
+				pendingMap.Key,
+				pendingMap.Val.State,
+				pendingMap.Val.Timestamp,
+				pendingMap.Val.Op,
+			),
+		)
 	}
 
-	return make([]*domain.PendingMap, len(record.Entry.PendingMap))
+	return maps
 }
 
 func newPendingLogs(record *bilist.Record) []*domain.PendingLog {
-	if len(record.Entry.PendingLog) == 0 {
-		return nil
+	var logs []*domain.PendingLog
+
+	for _, pendingLog := range record.Entry.PendingLog {
+		var vals []*domain.PendingLogVal
+		for _, pendingVal := range pendingLog.Val {
+			vals = append(
+				vals,
+				domain.NewPendingLogVal(
+					pendingVal.Epoch,
+					pendingVal.Op,
+					pendingVal.OpTag,
+					pendingVal.Key.Name,
+					pendingVal.Key.Instance,
+					pendingVal.DeleteMarker,
+				),
+			)
+		}
+
+		logs = append(logs, domain.NewPendingLog(pendingLog.Key, vals))
 	}
 
-	return make([]*domain.PendingLog, len(record.Entry.PendingLog))
+	return logs
 }

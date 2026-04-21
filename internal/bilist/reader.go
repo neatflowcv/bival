@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 )
 
 var (
@@ -22,22 +23,22 @@ type Record struct {
 // Entry is a superset of the shapes observed in sample data.
 // Fields that do not exist for a given record type remain zero-valued.
 type Entry struct {
-	Name           string            `json:"name"`
-	Instance       string            `json:"instance"`
-	Ver            Version           `json:"ver"`
-	Locator        string            `json:"locator"`
-	Exists         bool              `json:"exists"`
-	Meta           Meta              `json:"meta"`
-	Tag            string            `json:"tag"`
-	Flags          int               `json:"flags"`
-	PendingMap     []json.RawMessage `json:"pending_map"`
-	VersionedEpoch int               `json:"versioned_epoch"`
+	Name           string       `json:"name"`
+	Instance       string       `json:"instance"`
+	Ver            Version      `json:"ver"`
+	Locator        string       `json:"locator"`
+	Exists         bool         `json:"exists"`
+	Meta           Meta         `json:"meta"`
+	Tag            string       `json:"tag"`
+	Flags          int          `json:"flags"`
+	PendingMap     []PendingMap `json:"pending_map"`
+	VersionedEpoch int          `json:"versioned_epoch"`
 
-	Key            Key               `json:"key"`
-	DeleteMarker   bool              `json:"delete_marker"`
-	Epoch          int               `json:"epoch"`
-	PendingLog     []json.RawMessage `json:"pending_log"`
-	PendingRemoval bool              `json:"pending_removal"`
+	Key            Key          `json:"key"`
+	DeleteMarker   bool         `json:"delete_marker"`
+	Epoch          int          `json:"epoch"`
+	PendingLog     []PendingLog `json:"pending_log"`
+	PendingRemoval bool         `json:"pending_removal"`
 }
 
 type Version struct {
@@ -62,6 +63,30 @@ type Meta struct {
 type Key struct {
 	Name     string `json:"name"`
 	Instance string `json:"instance"`
+}
+
+type PendingMap struct {
+	Key string        `json:"key"`
+	Val PendingMapVal `json:"val"`
+}
+
+type PendingMapVal struct {
+	State     int       `json:"state"`
+	Timestamp time.Time `json:"timestamp"`
+	Op        int       `json:"op"`
+}
+
+type PendingLog struct {
+	Key int             `json:"key"`
+	Val []PendingLogVal `json:"val"`
+}
+
+type PendingLogVal struct {
+	Epoch        int    `json:"epoch"`
+	Op           string `json:"op"`
+	OpTag        string `json:"op_tag"`
+	Key          Key    `json:"key"`
+	DeleteMarker bool   `json:"delete_marker"`
 }
 
 // Reader streams bilist records from a JSON array source.
