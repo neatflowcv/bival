@@ -101,17 +101,13 @@ func addRecordToGroup(group *entrygroup.EntryGroup, record *bilist.Record) error
 
 	switch typed := entry.(type) {
 	case *domain.Plain:
-		err = group.AddPlain(typed)
+		group.AddPlain(typed)
 	case *domain.Instance:
-		err = group.AddInstance(typed)
+		group.AddInstance(typed)
 	case *domain.OLH:
-		err = group.AddOLH(typed)
+		group.AddOLH(typed)
 	default:
 		return fmt.Errorf("%w %T", errUnsupportedBuiltEntryType, entry)
-	}
-
-	if err != nil {
-		return fmt.Errorf("group entry idx=%q type=%q: %w", record.Idx, record.Type, err)
 	}
 
 	return nil

@@ -1,13 +1,10 @@
 package entrygroup
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
-
-var errEntryGroupNameMismatch = errors.New("entry name does not match group name")
 
 const (
 	missingVersionedHeadReason       = "missing versioned head"
@@ -20,9 +17,6 @@ const (
 	missingOLHReason                 = "missing olh"
 	invalidOLHReason                 = "invalid olh"
 	invalidOLHReferenceReason        = "olh references missing instance"
-	staleOLHReferenceReason          = "stale olh reference allows only one version"
-	staleDeleteMarkerOLHReason       = "stale delete-marker olh allows no versions"
-	tooManyVersionedEntriesReason    = "too many versioned entries"
 	maxVersionedEntryCount           = 8
 )
 
@@ -96,37 +90,19 @@ func (g *EntryGroup) Issues() []*Issue {
 	return diagnoseObject(g)
 }
 
-func (g *EntryGroup) AddPlain(entry *domain.Plain) error {
-	err := g.validateName(entry.Name())
-	if err != nil {
-		return err
-	}
-
+func (g *EntryGroup) AddPlain(entry *domain.Plain) {
+	g.ensureNameMatches(entry.Name())
 	g.plainEntries = append(g.plainEntries, entry)
-
-	return nil
 }
 
-func (g *EntryGroup) AddInstance(entry *domain.Instance) error {
-	err := g.validateName(entry.Name())
-	if err != nil {
-		return err
-	}
-
+func (g *EntryGroup) AddInstance(entry *domain.Instance) {
+	g.ensureNameMatches(entry.Name())
 	g.instanceEntries = append(g.instanceEntries, entry)
-
-	return nil
 }
 
-func (g *EntryGroup) AddOLH(entry *domain.OLH) error {
-	err := g.validateName(entry.Name())
-	if err != nil {
-		return err
-	}
-
+func (g *EntryGroup) AddOLH(entry *domain.OLH) {
+	g.ensureNameMatches(entry.Name())
 	g.olhEntries = append(g.olhEntries, entry)
-
-	return nil
 }
 
 func (g *EntryGroup) PlainEntries() []*domain.Plain {
@@ -141,12 +117,14 @@ func (g *EntryGroup) OLHEntries() []*domain.OLH {
 	return g.olhEntries
 }
 
-func (g *EntryGroup) validateName(entryName string) error {
+// 이름 불일치는 복구 대상이 아니라 호출자 버그로 본다.
+// 이 제약은 의도된 것이며, 잘못된 엔트리가 추가되면 panic으로 즉시 드러내는 편이 낫다.
+func (g *EntryGroup) ensureNameMatches(entryName string) {
 	if entryName == g.name {
-		return nil
+		return
 	}
 
-	return fmt.Errorf("%w: entry name %q does not match group name %q", errEntryGroupNameMismatch, entryName, g.name)
+	panic(fmt.Sprintf("entry name %q does not match group name %q", entryName, g.name))
 }
 
 func (g *EntryGroup) versionedEntryCount() int {

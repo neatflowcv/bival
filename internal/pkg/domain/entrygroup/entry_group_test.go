@@ -36,8 +36,7 @@ func TestEntryGroupAddPlainTracksPendingMap(t *testing.T) {
 
 	group := entrygroup.New("alpha")
 
-	err := group.AddPlain(newPlainEntry("alpha", true))
-	require.NoError(t, err)
+	group.AddPlain(newPlainEntry("alpha", true))
 	require.True(t, group.HasPendingEntries())
 }
 
@@ -46,8 +45,7 @@ func TestEntryGroupAddInstanceTracksPendingMap(t *testing.T) {
 
 	group := entrygroup.New("alpha")
 
-	err := group.AddInstance(newInstanceEntry("alpha", true))
-	require.NoError(t, err)
+	group.AddInstance(newInstanceEntry("alpha", true))
 	require.True(t, group.HasPendingEntries())
 }
 
@@ -56,8 +54,7 @@ func TestEntryGroupAddOLHTracksPendingLog(t *testing.T) {
 
 	group := entrygroup.New("alpha")
 
-	err := group.AddOLH(newOLHEntry("alpha", true))
-	require.NoError(t, err)
+	group.AddOLH(newOLHEntry("alpha", true))
 	require.True(t, group.HasPendingEntries())
 }
 
@@ -70,18 +67,18 @@ func TestEntryGroupPendingStateMatchesStoredEntries(t *testing.T) {
 	require.False(t, group.HasPendingLog())
 	require.False(t, group.HasPendingEntries())
 
-	require.NoError(t, group.AddPlain(newPlainEntry("alpha", false)))
+	group.AddPlain(newPlainEntry("alpha", false))
 	require.False(t, group.HasPendingMap())
 	require.False(t, group.HasPendingLog())
 	require.False(t, group.HasPendingEntries())
 
-	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", true)))
+	group.AddInstance(newInstanceEntry("alpha", true))
 	require.True(t, group.HasPendingMap())
 	require.False(t, group.HasPendingLog())
 	require.True(t, group.HasPendingEntries())
 
 	otherGroup := entrygroup.New("beta")
-	require.NoError(t, otherGroup.AddOLH(newOLHEntry("beta", true)))
+	otherGroup.AddOLH(newOLHEntry("beta", true))
 	require.False(t, otherGroup.HasPendingMap())
 	require.True(t, otherGroup.HasPendingLog())
 	require.True(t, otherGroup.HasPendingEntries())
@@ -96,16 +93,16 @@ func TestEntryGroupCountsMatchStoredEntries(t *testing.T) {
 	require.Zero(t, group.InstanceCount())
 	require.Zero(t, group.OLHCount())
 
-	require.NoError(t, group.AddPlain(newPlainEntry("alpha", false)))
+	group.AddPlain(newPlainEntry("alpha", false))
 	require.Equal(t, len(group.PlainEntries()), group.PlainCount())
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
+	group.AddPlain(newVersionedHeadPlainEntry())
 	require.Equal(t, len(group.PlainEntries()), group.PlainCount())
 
-	require.NoError(t, group.AddInstance(newInstanceEntry("alpha", false)))
+	group.AddInstance(newInstanceEntry("alpha", false))
 	require.Equal(t, len(group.InstanceEntries()), group.InstanceCount())
 
-	require.NoError(t, group.AddOLH(newOLHEntry("alpha", false)))
+	group.AddOLH(newOLHEntry("alpha", false))
 	require.Equal(t, len(group.OLHEntries()), group.OLHCount())
 }
 
@@ -117,12 +114,12 @@ func TestEntryGroupProblemReasonReturnsEmptyForVersionedObjectAtThreshold(t *tes
 	versionOne := defaultVersionedFixture("v1")
 	versionTwo := defaultVersionedFixture("v2")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
 	require.Empty(t, group.ProblemReason())
 }
 
@@ -136,16 +133,16 @@ func TestEntryGroupProblemReasonReportsTooManyVersionedEntries(t *testing.T) {
 	versionThree := defaultVersionedFixture("v3")
 	versionFour := defaultVersionedFixture("v4")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionThree)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionFour)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionFour)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddPlain(newVersionedPlainEntry(versionThree))
+	group.AddPlain(newVersionedPlainEntry(versionFour))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionThree))
+	group.AddInstance(newVersionedInstanceEntry(versionFour))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
 	require.Equal(t, []string{"entry.versioned.count.exceeded"}, issueCodes(group.ProblemReason()))
 }
 
@@ -158,14 +155,14 @@ func TestEntryGroupProblemReasonIncludesPendingEntry(t *testing.T) {
 	versionTwo := defaultVersionedFixture("v2")
 	versionThree := defaultVersionedFixture("v3")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionThree)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddPlain(newVersionedPlainEntry(versionThree))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionThree))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
 	require.Equal(t, []string{"entry.pending.exists"}, issueCodes(group.ProblemReason()))
 }
 
@@ -179,16 +176,16 @@ func TestEntryGroupProblemReasonKeepsPendingEntryBeforeVersionedCountExceeded(t 
 	versionThree := defaultVersionedFixture("v3")
 	versionFour := defaultVersionedFixture("v4")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionThree)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionFour)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionFour)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddPlain(newVersionedPlainEntry(versionThree))
+	group.AddPlain(newVersionedPlainEntry(versionFour))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionThree))
+	group.AddInstance(newVersionedInstanceEntry(versionFour))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
 
 	require.Equal(
 		t,
@@ -207,12 +204,12 @@ func TestEntryGroupProblemReasonRejectsMultipleVersionsWhenOLHReferenceIsStale(t
 
 	versionTwo := defaultVersionedFixture("v2")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
 	require.Equal(t, []string{"olh.reference.stale"}, issueCodes(group.ProblemReason()))
 }
 
@@ -226,12 +223,12 @@ func TestEntryGroupProblemReasonAllowsMultipleVersionsWhenOnlyNonOLHReferenceIsS
 
 	versionTwo := defaultVersionedFixture("v2")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v2", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v2", false))
 	require.Empty(t, group.ProblemReason())
 }
 
@@ -254,455 +251,58 @@ func TestEntryGroupProblemReasonRejectsStaleDeleteMarkerOLHWhenVersionsExist(t *
 	version.accountedSize = 0
 	version.contentType = ""
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(version)))
-	require.NoError(t, group.AddOLH(newCustomVersionedOLHEntry("alpha", "delete-v1", false, true)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(version))
+	group.AddInstance(newVersionedInstanceEntry(version))
+	group.AddOLH(newCustomVersionedOLHEntry("alpha", "delete-v1", false, true))
 	require.Equal(t, []string{"olh.delete_marker.stale"}, issueCodes(group.ProblemReason()))
-}
-
-func TestEntryGroupClassifierReturnsVersionedObjectWhenNoRuleMatches(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newUnversionedPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-}
-
-func TestEntryGroupClassifierReturnsVersionedObjectWithSingleVersion(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	version := defaultVersionedFixture("v1")
-	instanceVersion := version
-	instanceVersion.tag = "instance-tag"
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(instanceVersion)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func TestEntryGroupClassifierReturnsVersionedObjectWithDeleteMarkerHead(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	deleteMarker := defaultVersionedFixture("delete-v1")
-	deleteMarker.exists = false
-	deleteMarker.pool = -1
-	deleteMarker.epoch = 0
-	deleteMarker.eTag = ""
-	deleteMarker.tag = "delete-marker"
-	deleteMarker.flags = 7
-	deleteMarker.versionedEpoch = 3
-	deleteMarker.category = 0
-	deleteMarker.size = 0
-	deleteMarker.accountedSize = 0
-	deleteMarker.contentType = ""
-	deleteMarker.mtime = sampleDeleteMarkerMTime()
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(deleteMarker)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(deleteMarker)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "delete-v1", false)))
-}
-
-func TestEntryGroupClassifierReturnsVersionedObjectWithMultipleVersions(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	versionOne := defaultVersionedFixture("v1")
-	versionOne.pool = 186
-	versionOne.epoch = 1121
-	versionOne.tag = "tag-v1"
-	versionOne.flags = 3
-	versionOne.versionedEpoch = 3
-	versionOne.mtime = sampleEarlierMTime()
-
-	versionTwo := defaultVersionedFixture("v2")
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionOne)))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(versionTwo)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func TestEntryGroupClassifierReturnsVersionedObjectWithEmptyInstanceVersion(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	version := defaultVersionedFixture("")
-	version.pool = 34
-	version.epoch = 2219298
-	version.versionedEpoch = 3
-	version.flags = 3
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(version)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "", false)))
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainIsMissing(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainIsDuplicated(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainShapeIsInvalid(t *testing.T) {
-	t.Parallel()
-
-	fixture := versionedHeadFixture()
-	fixture.flags = 0
-
-	assertVersionedObjectRejectedForInvalidHead(t, fixture)
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenHeadPlainMetaIsNotDefault(t *testing.T) {
-	t.Parallel()
-
-	fixture := versionedHeadFixture()
-	fixture.category = 1
-
-	assertVersionedObjectRejectedForInvalidHead(t, fixture)
-}
-
-func assertVersionedObjectRejectedForInvalidHead(t *testing.T, fixture versionedEntryFixture) {
-	t.Helper()
-
-	group := entrygroup.New("alpha")
-
-	invalidHead := newCustomVersionedPlainEntry(fixture, false)
-
-	require.NoError(t, group.AddPlain(invalidHead))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func versionedHeadFixture() versionedEntryFixture {
-	return versionedEntryFixture{
-		idx:            "alpha",
-		name:           "alpha",
-		instance:       "",
-		pool:           -1,
-		epoch:          0,
-		exists:         false,
-		mtime:          "0.000000",
-		eTag:           "",
-		tag:            "",
-		flags:          0,
-		versionedEpoch: 0,
-		category:       0,
-		size:           0,
-		accountedSize:  0,
-		contentType:    "",
-		owner:          "",
-		ownerDisplay:   "",
-		pendingMap:     false,
-	}
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainInstanceNonTagPayloadsDiffer(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	fixture := defaultVersionedFixture("v1")
-	mismatchedInstance := fixture
-	mismatchedInstance.flags = fixture.flags + 1
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(fixture)))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(mismatchedInstance)))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenPlainHasNoMatchingInstance(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v2"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenInstanceHasNoMatchingPlain(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v2"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenOLHReferencesMissingInstance(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "missing", false)))
-}
-
-func TestEntryGroupClassifierRejectsVersionedObjectWhenOLHHasPendingLog(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", true)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenIdxDiffersFromName(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha-idx",
-		"alpha",
-		"",
-		false,
-		1,
-		1,
-		true,
-		sampleMTime(),
-		"etag",
-		"tag",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenInstanceIsNotEmpty(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"v1",
-		false,
-		1,
-		1,
-		true,
-		sampleMTime(),
-		"etag",
-		"tag",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenVersionPoolIsBelowMinimum(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
-		0,
-		1,
-		true,
-		sampleMTime(),
-		"etag",
-		"tag",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenVersionEpochIsBelowMinimum(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
-		1,
-		0,
-		true,
-		sampleMTime(),
-		"etag",
-		"tag",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenExistsIsFalse(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
-		1,
-		1,
-		false,
-		sampleMTime(),
-		"etag",
-		"tag",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenMTimeIsZero(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
-		1,
-		1,
-		true,
-		"",
-		"etag",
-		"tag",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenETagIsEmpty(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
-		1,
-		1,
-		true,
-		sampleMTime(),
-		"",
-		"tag",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenTagIsEmpty(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
-		1,
-		1,
-		true,
-		sampleMTime(),
-		"etag",
-		"",
-		0,
-	)))
-}
-
-func TestEntryGroupClassifierRejectsUnversionedWhenFlagsAreNotZero(t *testing.T) {
-	t.Parallel()
-
-	group := entrygroup.New("alpha")
-
-	require.NoError(t, group.AddPlain(newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
-		1,
-		1,
-		true,
-		sampleMTime(),
-		"etag",
-		"tag",
-		1,
-	)))
 }
 
 func TestEntryGroupRejectsMismatchedPlainName(t *testing.T) {
 	t.Parallel()
 
+	// Arrange
 	group := entrygroup.New("alpha")
 
-	err := group.AddPlain(newPlainEntry("beta", false))
-	require.EqualError(
+	// Act Assert
+	require.PanicsWithValue(
 		t,
-		err,
-		"entry name does not match group name: entry name \"beta\" does not match group name \"alpha\"",
+		"entry name \"beta\" does not match group name \"alpha\"",
+		func() {
+			group.AddPlain(newPlainEntry("beta", false))
+		},
 	)
 }
 
 func TestEntryGroupRejectsMismatchedInstanceName(t *testing.T) {
 	t.Parallel()
 
+	// Arrange
 	group := entrygroup.New("alpha")
 
-	err := group.AddInstance(newInstanceEntry("beta", false))
-	require.EqualError(
+	// Act Assert
+	require.PanicsWithValue(
 		t,
-		err,
-		"entry name does not match group name: entry name \"beta\" does not match group name \"alpha\"",
+		"entry name \"beta\" does not match group name \"alpha\"",
+		func() {
+			group.AddInstance(newInstanceEntry("beta", false))
+		},
 	)
 }
 
 func TestEntryGroupRejectsMismatchedOLHName(t *testing.T) {
 	t.Parallel()
 
+	// Arrange
 	group := entrygroup.New("alpha")
 
-	err := group.AddOLH(newOLHEntry("beta", false))
-	require.EqualError(
+	// Act Assert
+	require.PanicsWithValue(
 		t,
-		err,
-		"entry name does not match group name: entry name \"beta\" does not match group name \"alpha\"",
+		"entry name \"beta\" does not match group name \"alpha\"",
+		func() {
+			group.AddOLH(newOLHEntry("beta", false))
+		},
 	)
 }
 
@@ -712,22 +312,6 @@ func newPlainEntry(name string, pending bool) *domain.Plain {
 		name,
 		"",
 		pending,
-		1,
-		1,
-		true,
-		sampleMTime(),
-		"etag",
-		"tag",
-		0,
-	)
-}
-
-func newUnversionedPlainEntry() *domain.Plain {
-	return newCustomPlainEntry(
-		"alpha",
-		"alpha",
-		"",
-		false,
 		1,
 		1,
 		true,
@@ -943,14 +527,6 @@ func newCustomPlainEntry(
 
 func sampleMTime() string {
 	return sampleMTimeAtOffset(-24 * time.Hour)
-}
-
-func sampleEarlierMTime() string {
-	return sampleMTimeAtOffset(-26 * time.Hour)
-}
-
-func sampleDeleteMarkerMTime() string {
-	return sampleMTimeAtOffset(-23 * time.Hour)
 }
 
 func sampleStaleMTime() string {

@@ -12,11 +12,11 @@ func TestEntryGroupIssuesDescribeMissingMatchingInstance(t *testing.T) {
 
 	group := entrygroup.New("alpha")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v2"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1")))
+	group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v2")))
+	group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1")))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
 
 	issues := group.Issues()
 	require.Len(t, issues, 1)
@@ -29,10 +29,10 @@ func TestEntryGroupIssuesDescribeInvalidOLHReference(t *testing.T) {
 
 	group := entrygroup.New("alpha")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "missing", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1")))
+	group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1")))
+	group.AddOLH(newVersionedOLHEntry("alpha", "missing", false))
 
 	issues := group.Issues()
 	require.Len(t, issues, 1)
@@ -45,11 +45,11 @@ func TestEntryGroupIssuesMetaIsDefensivelyCopied(t *testing.T) {
 
 	group := entrygroup.New("alpha")
 
-	require.NoError(t, group.AddPlain(newVersionedHeadPlainEntry()))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v2"))))
-	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1"))))
-	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v1")))
+	group.AddPlain(newVersionedPlainEntry(defaultVersionedFixture("v2")))
+	group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1")))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
 
 	issues := group.Issues()
 	require.Len(t, issues, 1)
