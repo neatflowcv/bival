@@ -148,6 +148,38 @@ func TestNewPairsByGroup_AllowsMissingMatchingInstance(t *testing.T) {
 	require.Nil(t, pairs[0].Instance())
 }
 
+func TestNewPairsByGroup_SortsByMTime(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	group := entrygroup.New("alpha")
+	group.AddPlain(domain.NewPlain(versionedHeadParams()))
+
+	olderParams := versionedPairParams()
+	olderParams.Index = []byte("alpha:ver-1")
+	olderParams.Instance = "ver-1"
+	olderParams.MTime = "2026-04-27T00:00:00Z"
+
+	newerParams := versionedPairParams()
+	newerParams.Index = []byte("alpha:ver-2")
+	newerParams.Instance = "ver-2"
+	newerParams.MTime = "2026-04-28T00:00:00Z"
+
+	group.AddPlain(domain.NewPlain(newerParams))
+	group.AddInstance(domain.NewInstance(newerParams))
+	group.AddPlain(domain.NewPlain(olderParams))
+	group.AddInstance(domain.NewInstance(olderParams))
+
+	// Act
+	pairs, err := entrygroup.NewPairsByGroup(group)
+
+	// Assert
+	require.NoError(t, err)
+	require.Len(t, pairs, 2)
+	require.Equal(t, "2026-04-27T00:00:00Z", pairs[0].MTime())
+	require.Equal(t, "2026-04-28T00:00:00Z", pairs[1].MTime())
+}
+
 func versionedHeadParams() domain.DirEntryParams {
 	return domain.DirEntryParams{
 		Kind:             "",

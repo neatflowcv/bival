@@ -1,6 +1,7 @@
 package entrygroup
 
 import (
+	"cmp"
 	"errors"
 	"slices"
 
@@ -71,6 +72,10 @@ func NewPairsByGroup(group *EntryGroup) ([]*Pair, error) {
 		pair := NewPair(plainMap[version], instanceMap[version])
 		pairs = append(pairs, pair)
 	}
+
+	slices.SortFunc(pairs, func(left *Pair, right *Pair) int {
+		return cmp.Compare(left.MTime(), right.MTime())
+	})
 
 	return pairs, nil
 }
