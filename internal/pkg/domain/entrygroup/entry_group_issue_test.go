@@ -40,6 +40,37 @@ func TestEntryGroupIssuesDescribeInvalidOLHReference(t *testing.T) {
 	require.Equal(t, map[string]string{"referenced_version": "missing"}, issues[0].Meta())
 }
 
+func TestEntryGroupIssuesDescribeOutdatedOLHReference(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionOne.mtime = olderMTime
+
+	versionTwo := defaultVersionedFixture("v2")
+	versionTwo.mtime = newerMTime
+
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
+
+	issues := group.Issues()
+	require.Len(t, issues, 1)
+	require.Equal(t, "olh.reference.outdated", issues[0].Code())
+	require.Equal(
+		t,
+		map[string]string{
+			"referenced_version": "v1",
+			"version":            "v2",
+		},
+		issues[0].Meta(),
+	)
+}
+
 func TestEntryGroupIssuesMetaIsDefensivelyCopied(t *testing.T) {
 	t.Parallel()
 

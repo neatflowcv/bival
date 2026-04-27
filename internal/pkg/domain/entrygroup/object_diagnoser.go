@@ -18,6 +18,7 @@ const (
 	issueCodeMissingOLH              = "olh.missing"
 	issueCodeInvalidOLH              = "olh.invalid"
 	issueCodeInvalidOLHReference     = "olh.reference.invalid"
+	issueCodeOutdatedOLHReference    = "olh.reference.outdated"
 	issueCodeStaleVersion            = "version.stale"
 )
 
@@ -38,6 +39,7 @@ func newVersionedObjectDiagnosers() []Diagnoser {
 		entryKeyDiagnoser{},
 		pairDiagnoser{},
 		olhDiagnoser{},
+		olhLatestMTimeDiagnoser{},
 		staleOLHDiagnoser{now: time.Now()},
 	}
 }

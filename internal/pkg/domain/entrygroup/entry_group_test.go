@@ -106,6 +106,48 @@ func TestEntryGroupCountsMatchStoredEntries(t *testing.T) {
 	require.Equal(t, len(group.OLHEntries()), group.OLHCount())
 }
 
+func TestEntryGroupPlainEntriesReturnsDefensiveCopy(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+	entry := newPlainEntry("alpha", false)
+	group.AddPlain(entry)
+
+	entries := group.PlainEntries()
+	entries[0] = nil
+
+	require.Len(t, group.PlainEntries(), 1)
+	require.Same(t, entry, group.PlainEntries()[0])
+}
+
+func TestEntryGroupInstanceEntriesReturnsDefensiveCopy(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+	entry := newInstanceEntry("alpha", false)
+	group.AddInstance(entry)
+
+	entries := group.InstanceEntries()
+	entries[0] = nil
+
+	require.Len(t, group.InstanceEntries(), 1)
+	require.Same(t, entry, group.InstanceEntries()[0])
+}
+
+func TestEntryGroupOLHEntriesReturnsDefensiveCopy(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+	entry := newOLHEntry("alpha", false)
+	group.AddOLH(entry)
+
+	entries := group.OLHEntries()
+	entries[0] = nil
+
+	require.Len(t, group.OLHEntries(), 1)
+	require.Same(t, entry, group.OLHEntries()[0])
+}
+
 func TestEntryGroupProblemReasonReturnsEmptyForVersionedObjectAtThreshold(t *testing.T) {
 	t.Parallel()
 
@@ -242,7 +284,70 @@ func TestEntryGroupProblemReasonRejectsMultipleVersionsWhenOLHReferenceIsStale(t
 	group.AddInstance(newVersionedInstanceEntry(versionOne))
 	group.AddInstance(newVersionedInstanceEntry(versionTwo))
 	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
-	require.Equal(t, []string{"version.stale"}, issueCodes(group.ProblemReason()))
+	require.Equal(t, []string{"olh.reference.outdated", "version.stale"}, issueCodes(group.ProblemReason()))
+}
+
+func TestEntryGroupProblemReasonAllowsOLHReferenceWithLatestMTime(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionOne.mtime = olderMTime
+
+	versionTwo := defaultVersionedFixture("v2")
+	versionTwo.mtime = newerMTime
+
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v2", false))
+
+	require.Empty(t, group.ProblemReason())
+}
+
+func TestEntryGroupProblemReasonAllowsOLHReferenceWhenLatestMTimeIsTied(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionOne.mtime = newerMTime
+
+	versionTwo := defaultVersionedFixture("v2")
+	versionTwo.mtime = newerMTime
+
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
+
+	require.Empty(t, group.ProblemReason())
+}
+
+func TestEntryGroupProblemReasonSkipsOutdatedOLHReferenceWhenReferencedPairMTimeIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	versionOne := defaultVersionedFixture("v1")
+	versionOne.mtime = "invalid-mtime"
+
+	versionTwo := defaultVersionedFixture("v2")
+	versionTwo.mtime = newerMTime
+
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
+
+	require.Empty(t, group.ProblemReason())
 }
 
 func TestEntryGroupProblemReasonAllowsMultipleVersionsWhenOnlyNonOLHReferenceIsStale(t *testing.T) {
@@ -566,9 +671,7 @@ func sampleStaleMTime() string {
 }
 
 func sampleMTimeAtOffset(offset time.Duration) string {
-	now := time.Now().UTC().Truncate(time.Second)
-
-	return now.Add(offset).Format(time.RFC3339Nano)
+	return time.Now().UTC().Truncate(24 * time.Hour).Add(offset).Format(time.RFC3339Nano)
 }
 
 func newOLHEntry(name string, pending bool) *domain.OLH {
