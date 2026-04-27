@@ -136,6 +136,7 @@ func logProblem(group *entrygroup.EntryGroup, logger *log.Logger) {
 	args = append(args, group.Name())
 
 	var formatSb137 strings.Builder
+
 	for _, issue := range issues {
 		if issue == nil {
 			continue
@@ -147,6 +148,7 @@ func logProblem(group *entrygroup.EntryGroup, logger *log.Logger) {
 		}
 
 		formatSb137.WriteString(" code=%q")
+
 		args = append(args, code)
 	}
 
