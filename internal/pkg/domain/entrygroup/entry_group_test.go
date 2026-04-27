@@ -9,6 +9,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func issueCodes(issues []*entrygroup.Issue) []string {
+	codes := make([]string, 0, len(issues))
+	for _, issue := range issues {
+		if issue == nil {
+			continue
+		}
+
+		code := issue.Code()
+		if code == "" {
+			continue
+		}
+
+		codes = append(codes, code)
+	}
+
+	if len(codes) == 0 {
+		return nil
+	}
+
+	return codes
+}
+
 func TestEntryGroupAddPlainTracksPendingMap(t *testing.T) {
 	t.Parallel()
 
@@ -124,7 +146,7 @@ func TestEntryGroupProblemReasonReportsTooManyVersionedEntries(t *testing.T) {
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionFour)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, []string{"too many versioned entries"}, group.ProblemReason())
+	require.Equal(t, []string{"entry.versioned.count.exceeded"}, issueCodes(group.ProblemReason()))
 }
 
 func TestEntryGroupProblemReasonIncludesPendingEntry(t *testing.T) {
@@ -144,7 +166,7 @@ func TestEntryGroupProblemReasonIncludesPendingEntry(t *testing.T) {
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionThree)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, []string{"pending entry exists"}, group.ProblemReason())
+	require.Equal(t, []string{"entry.pending.exists"}, issueCodes(group.ProblemReason()))
 }
 
 func TestEntryGroupProblemReasonRejectsMultipleVersionsWhenOLHReferenceIsStale(t *testing.T) {
@@ -163,7 +185,7 @@ func TestEntryGroupProblemReasonRejectsMultipleVersionsWhenOLHReferenceIsStale(t
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionOne)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(versionTwo)))
 	require.NoError(t, group.AddOLH(newVersionedOLHEntry("alpha", "v1", false)))
-	require.Equal(t, []string{"stale olh reference allows only one version"}, group.ProblemReason())
+	require.Equal(t, []string{"olh.reference.stale"}, issueCodes(group.ProblemReason()))
 }
 
 func TestEntryGroupProblemReasonAllowsMultipleVersionsWhenOnlyNonOLHReferenceIsStale(t *testing.T) {
@@ -208,7 +230,7 @@ func TestEntryGroupProblemReasonRejectsStaleDeleteMarkerOLHWhenVersionsExist(t *
 	require.NoError(t, group.AddPlain(newVersionedPlainEntry(version)))
 	require.NoError(t, group.AddInstance(newVersionedInstanceEntry(version)))
 	require.NoError(t, group.AddOLH(newCustomVersionedOLHEntry("alpha", "delete-v1", false, true)))
-	require.Equal(t, []string{"stale delete-marker olh allows no versions"}, group.ProblemReason())
+	require.Equal(t, []string{"olh.delete_marker.stale"}, issueCodes(group.ProblemReason()))
 }
 
 func TestEntryGroupClassifierReturnsVersionedObjectWhenNoRuleMatches(t *testing.T) {

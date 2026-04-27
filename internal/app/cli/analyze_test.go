@@ -73,7 +73,7 @@ func TestAnalyzeFileReportsPendingMapGroupOnce(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" reason=\"pending entry exists\" reason=\"plain and instance versions differ\"\n",
+		"problem name=\"alpha\" code=\"entry.pending.exists\" code=\"pair.version.mismatched\"\n",
 		buf.String(),
 	)
 }
@@ -95,7 +95,7 @@ func TestAnalyzeFileReportsPendingLogGroupOnce(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"pending entry exists\" reason=\"invalid olh\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"entry.pending.exists\" code=\"olh.invalid\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
@@ -117,7 +117,7 @@ func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" reason=\"instance version has no matching plain\" reason=\"missing olh\"\n",
+		"problem name=\"alpha\" code=\"pair.plain.missing\" code=\"olh.missing\"\n",
 		buf.String(),
 	)
 }
@@ -140,7 +140,7 @@ func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"plain version has no matching instance\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"pair.instance.missing\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsTooManyVersionedEntries(t *testing.T) {
@@ -166,7 +166,7 @@ func TestAnalyzeFileReportsTooManyVersionedEntries(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"too many versioned entries\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"entry.versioned.count.exceeded\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsPendingEntryAndTooManyVersionedEntries(t *testing.T) {
@@ -192,7 +192,7 @@ func TestAnalyzeFileReportsPendingEntryAndTooManyVersionedEntries(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" reason=\"pending entry exists\" reason=\"plain and instance versions differ\"\n",
+		"problem name=\"alpha\" code=\"entry.pending.exists\" code=\"pair.version.mismatched\"\n",
 		buf.String(),
 	)
 }
@@ -214,7 +214,7 @@ func TestAnalyzeFileReportsStaleDeleteMarkerOLH(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" reason=\"stale delete-marker olh allows no versions\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"olh.delete_marker.stale\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
@@ -240,7 +240,7 @@ func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"beta\" reason=\"plain version has no matching instance\"\n", buf.String())
+	require.Equal(t, "problem name=\"beta\" code=\"pair.instance.missing\"\n", buf.String())
 }
 
 func TestAnalyzeFileHandlesZeroFloatMTime(t *testing.T) {

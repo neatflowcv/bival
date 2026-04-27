@@ -126,20 +126,32 @@ func recordName(record *bilist.Record) string {
 }
 
 func logProblem(group *entrygroup.EntryGroup, logger *log.Logger) {
-	reasons := group.ProblemReason()
-	if len(reasons) == 0 {
+	issues := group.ProblemReason()
+	if len(issues) == 0 {
 		return
 	}
 
 	format := "problem name=%q"
-	args := make([]any, 0, len(reasons)+1)
+	args := make([]any, 0, len(issues)+1)
 	args = append(args, group.Name())
 
 	var formatSb137 strings.Builder
-	for _, reason := range reasons {
-		formatSb137.WriteString(" reason=%q")
+	for _, issue := range issues {
+		if issue == nil {
+			continue
+		}
 
-		args = append(args, reason)
+		code := issue.Code()
+		if code == "" {
+			continue
+		}
+
+		formatSb137.WriteString(" code=%q")
+		args = append(args, code)
+	}
+
+	if len(args) == 1 {
+		return
 	}
 
 	format += formatSb137.String()

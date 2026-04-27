@@ -88,38 +88,8 @@ func (g *EntryGroup) HasPendingEntries() bool {
 	return g.HasPendingMap() || g.HasPendingLog()
 }
 
-func (g *EntryGroup) ProblemReason() []string {
-	reasons := make([]string, 0)
-
-	if g.HasPendingEntries() {
-		reasons = append(reasons, "pending entry exists")
-	}
-
-	if g.isUnversionedObject() {
-		if len(reasons) == 0 {
-			return nil
-		}
-
-		return reasons
-	}
-
-	if g.versionedEntryCount() > maxVersionedEntryCount {
-		reasons = append(reasons, tooManyVersionedEntriesReason)
-	}
-
-	err := checkRules(g, newVersionedObjectRules())
-	if err != nil {
-		errs := splitJoinedErrors(err)
-		for _, errItem := range errs {
-			reasons = append(reasons, errItem.Error())
-		}
-	}
-
-	if len(reasons) == 0 {
-		return nil
-	}
-
-	return reasons
+func (g *EntryGroup) ProblemReason() []*Issue {
+	return g.Issues()
 }
 
 func (g *EntryGroup) AddPlain(entry *domain.Plain) error {
