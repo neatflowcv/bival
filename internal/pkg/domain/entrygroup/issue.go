@@ -1,5 +1,7 @@
 package entrygroup
 
+import "maps"
+
 type Issue struct {
 	code string
 	meta map[string]string
@@ -26,9 +28,7 @@ func cloneIssueMeta(meta map[string]string) map[string]string {
 	}
 
 	cloned := make(map[string]string, len(meta))
-	for key, value := range meta {
-		cloned[key] = value
-	}
+	maps.Copy(cloned, meta)
 
 	return cloned
 }

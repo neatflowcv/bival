@@ -1,8 +1,8 @@
 package entrygroup
 
 import (
-	"fmt"
 	"sort"
+	"strconv"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
@@ -61,11 +61,13 @@ func diagnoseDuplicateEntryKeys(keys []entryKey, entryType string) []*Issue {
 	}
 
 	duplicateVersions := make([]string, 0)
+
 	for version, count := range counts {
 		if count > 1 {
 			duplicateVersions = append(duplicateVersions, version)
 		}
 	}
+
 	sort.Strings(duplicateVersions)
 
 	for _, version := range duplicateVersions {
@@ -74,7 +76,7 @@ func diagnoseDuplicateEntryKeys(keys []entryKey, entryType string) []*Issue {
 			map[string]string{
 				"entry_type": entryType,
 				"version":    version,
-				"count":      fmt.Sprintf("%d", counts[version]),
+				"count":      strconv.Itoa(counts[version]),
 			},
 		))
 	}
