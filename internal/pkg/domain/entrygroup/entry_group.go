@@ -2,6 +2,7 @@ package entrygroup
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
@@ -106,15 +107,15 @@ func (g *EntryGroup) AddOLH(entry *domain.OLH) {
 }
 
 func (g *EntryGroup) PlainEntries() []*domain.Plain {
-	return g.plainEntries
+	return slices.Clone(g.plainEntries)
 }
 
 func (g *EntryGroup) InstanceEntries() []*domain.Instance {
-	return g.instanceEntries
+	return slices.Clone(g.instanceEntries)
 }
 
 func (g *EntryGroup) OLHEntries() []*domain.OLH {
-	return g.olhEntries
+	return slices.Clone(g.olhEntries)
 }
 
 // 이름 불일치는 복구 대상이 아니라 호출자 버그로 본다.
