@@ -6,18 +6,6 @@ import (
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
-var errMissingVersionedHead = errors.New(missingVersionedHeadReason)
-var errDuplicateVersionedHead = errors.New(duplicateVersionedHeadReason)
-var errInvalidVersionedHead = errors.New(invalidVersionedHeadReason)
-var errDuplicateVersionedEntryKey = errors.New(duplicateVersionedEntryKeyReason)
-var errMissingMatchingPlain = errors.New(missingMatchingPlainReason)
-var errMissingMatchingInstance = errors.New(missingMatchingInstanceReason)
-var errMismatchedVersionPair = errors.New(mismatchedVersionPairReason)
-var errMissingOLH = errors.New(missingOLHReason)
-var errInvalidOLH = errors.New(invalidOLHReason)
-var errInvalidVersionedOLH = errors.New(invalidOLHReferenceReason)
-var errStaleOLHReference = errors.New(staleOLHReferenceReason)
-var errStaleDeleteMarkerOLH = errors.New(staleDeleteMarkerOLHReason)
 var errPairAlreadyFull = errors.New("pair is already full")
 
 type Pair struct {
@@ -53,7 +41,7 @@ func collectVersionedPlainEntries(entries []*domain.Plain) ([]*domain.Plain, err
 		}
 
 		if placeholder != nil {
-			errs = append(errs, errDuplicateVersionedHead)
+			errs = append(errs, errors.New(duplicateVersionedHeadReason))
 
 			continue
 		}
@@ -63,9 +51,9 @@ func collectVersionedPlainEntries(entries []*domain.Plain) ([]*domain.Plain, err
 
 	if placeholder == nil {
 		if invalidHeadCount > 0 {
-			errs = append(errs, errInvalidVersionedHead)
+			errs = append(errs, errors.New(invalidVersionedHeadReason))
 		} else {
-			errs = append(errs, errMissingVersionedHead)
+			errs = append(errs, errors.New(missingVersionedHeadReason))
 		}
 	}
 
@@ -118,11 +106,11 @@ func validateVersionedPairs(pairs map[string]*Pair) []error {
 	for _, pair := range pairs {
 		switch {
 		case pair.Plain == nil:
-			errs = append(errs, errMissingMatchingPlain)
+			errs = append(errs, errors.New(missingMatchingPlainReason))
 		case pair.Instance == nil:
-			errs = append(errs, errMissingMatchingInstance)
+			errs = append(errs, errors.New(missingMatchingInstanceReason))
 		case !domain.IsVersionPair(pair.Plain, pair.Instance):
-			errs = append(errs, errMismatchedVersionPair)
+			errs = append(errs, errors.New(mismatchedVersionPairReason))
 		}
 	}
 
@@ -149,13 +137,13 @@ func buildVersionedOLH(olhEntries []*domain.OLH, instanceEntries []*domain.Insta
 	switch reason {
 	case "":
 	case missingOLHReason:
-		return nil, errMissingOLH
+		return nil, errors.New(missingOLHReason)
 	default:
-		return nil, errInvalidOLH
+		return nil, errors.New(invalidOLHReason)
 	}
 
 	if !hasValidOLHReference(olh, instanceEntries) {
-		return nil, errInvalidVersionedOLH
+		return nil, errors.New(invalidOLHReferenceReason)
 	}
 
 	return olh, nil
@@ -179,21 +167,4 @@ func (p *Pair) setInstance(entry *domain.Instance) error {
 	p.Instance = entry
 
 	return nil
-}
-
-func splitJoinedErrors(err error) []error {
-	if err == nil {
-		return nil
-	}
-
-	type unwrapper interface {
-		Unwrap() []error
-	}
-
-	joined, ok := err.(unwrapper)
-	if !ok {
-		return []error{err}
-	}
-
-	return joined.Unwrap()
 }
