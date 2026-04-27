@@ -14,11 +14,11 @@ var (
 	errInvalidOLH = errors.New(invalidOLHReason)
 )
 
-type staleOLHDiagnoser struct {
+type staleVersionDiagnoser struct {
 	now time.Time
 }
 
-func (d staleOLHDiagnoser) Diagnose(group *EntryGroup) []*Issue {
+func (d staleVersionDiagnoser) Diagnose(group *EntryGroup) []*Issue {
 	olh, err := extractOLH(group)
 	if err != nil {
 		return nil

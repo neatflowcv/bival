@@ -40,7 +40,7 @@ func newVersionedObjectDiagnosers() []Diagnoser {
 		pairDiagnoser{},
 		olhDiagnoser{},
 		olhLatestMTimeDiagnoser{},
-		staleOLHDiagnoser{now: time.Now()},
+		staleVersionDiagnoser{now: time.Now()},
 	}
 }
 
