@@ -2,11 +2,10 @@ package entrygroup
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
-
-var errPairAlreadyFull = errors.New("pair is already full")
 
 var (
 	errMissingMatchingPlain    = errors.New(missingMatchingPlainReason)
@@ -15,13 +14,65 @@ var (
 )
 
 type Pair struct {
-	Plain    *domain.Plain
-	Instance *domain.Instance
+	plain    *domain.Plain
+	instance *domain.Instance
 }
 
-func (p *Pair) isFull() bool {
-	return p.Plain != nil &&
-		p.Instance != nil
+func NewPair(plain *domain.Plain, instance *domain.Instance) *Pair {
+	return &Pair{
+		plain:    plain,
+		instance: instance,
+	}
+}
+
+func (p *Pair) Plain() *domain.Plain {
+	return p.plain
+}
+
+func (p *Pair) Instance() *domain.Instance {
+	return p.instance
+}
+
+func (p *Pair) MTime() string {
+	if p.plain != nil {
+		return p.plain.MTime()
+	}
+
+	if p.instance != nil {
+		return p.instance.MTime()
+	}
+
+	return ""
+}
+
+func NewPairsByGroup(group *EntryGroup) ([]*Pair, error) {
+	versionMap := map[string]struct{}{}
+	plains := slices.DeleteFunc(group.PlainEntries(), func(entry *domain.Plain) bool {
+		return entry.IsPlaceholder()
+	})
+	plainMap := map[string]*domain.Plain{}
+
+	for _, plain := range plains {
+		versionMap[plain.Instance()] = struct{}{}
+		plainMap[plain.Instance()] = plain
+	}
+
+	instances := group.InstanceEntries()
+	instanceMap := map[string]*domain.Instance{}
+
+	for _, instance := range instances {
+		versionMap[instance.Instance()] = struct{}{}
+		instanceMap[instance.Instance()] = instance
+	}
+
+	var pairs []*Pair
+
+	for version := range versionMap {
+		pair := NewPair(plainMap[version], instanceMap[version])
+		pairs = append(pairs, pair)
+	}
+
+	return pairs, nil
 }
 
 func composeVersionedPairs(
@@ -35,26 +86,22 @@ func composeVersionedPairs(
 
 	for key, plainEntry := range plainByKey {
 		pair := pairByInstance(pairs, key)
-
-		err := pair.setPlain(plainEntry)
-		if err != nil {
-			errs = append(errs, err)
-		}
+		pair.plain = plainEntry
 	}
 
 	for key, instanceEntry := range instanceByKey {
 		pair := pairByInstance(pairs, key)
-
-		err := pair.setInstance(instanceEntry)
-		if err != nil {
-			errs = append(errs, err)
-		}
+		pair.instance = instanceEntry
 	}
 
 	errs = append(errs, validateVersionedPairs(pairs)...)
 
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
+	}
+
+	for key, pair := range pairs {
+		pairs[key] = NewPair(pair.plain, pair.instance)
 	}
 
 	return pairs, nil
@@ -65,11 +112,11 @@ func validateVersionedPairs(pairs map[string]*Pair) []error {
 
 	for _, pair := range pairs {
 		switch {
-		case pair.Plain == nil:
+		case pair.plain == nil:
 			errs = append(errs, errMissingMatchingPlain)
-		case pair.Instance == nil:
+		case pair.instance == nil:
 			errs = append(errs, errMissingMatchingInstance)
-		case !domain.IsVersionPair(pair.Plain, pair.Instance):
+		case !domain.IsVersionPair(pair.plain, pair.instance):
 			errs = append(errs, errMismatchedVersionPair)
 		}
 	}
@@ -84,30 +131,10 @@ func pairByInstance(pairs map[string]*Pair, instance string) *Pair {
 	}
 
 	pair = &Pair{
-		Plain:    nil,
-		Instance: nil,
+		plain:    nil,
+		instance: nil,
 	}
 	pairs[instance] = pair
 
 	return pair
-}
-
-func (p *Pair) setPlain(entry *domain.Plain) error {
-	if p.isFull() {
-		return errPairAlreadyFull
-	}
-
-	p.Plain = entry
-
-	return nil
-}
-
-func (p *Pair) setInstance(entry *domain.Instance) error {
-	if p.isFull() {
-		return errPairAlreadyFull
-	}
-
-	p.Instance = entry
-
-	return nil
 }
