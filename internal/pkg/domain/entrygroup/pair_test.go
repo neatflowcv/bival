@@ -69,6 +69,18 @@ func TestNewPair_AllowsDifferentStateWhenNameAndInstanceMatch(t *testing.T) {
 	require.Same(t, instance, pair.Instance())
 }
 
+func TestNewPair_PanicsWhenEntriesMissing(t *testing.T) {
+	t.Parallel()
+
+	require.PanicsWithValue(
+		t,
+		"entrygroup.NewPair: plain and instance cannot both be nil",
+		func() {
+			entrygroup.NewPair(nil, nil)
+		},
+	)
+}
+
 func TestPairMTime_UsesPlainFirst(t *testing.T) {
 	t.Parallel()
 
@@ -80,10 +92,9 @@ func TestPairMTime_UsesPlainFirst(t *testing.T) {
 	pair := entrygroup.NewPair(plain, instance)
 
 	// Act
-	mtime, ok := pair.MTime()
+	mtime := pair.MTime()
 
 	// Assert
-	require.True(t, ok)
 	require.Equal(t, olderMTime, mtime)
 }
 
@@ -95,25 +106,10 @@ func TestPairMTime_UsesInstanceWhenPlainMissing(t *testing.T) {
 	pair := entrygroup.NewPair(nil, instance)
 
 	// Act
-	mtime, ok := pair.MTime()
+	mtime := pair.MTime()
 
 	// Assert
-	require.True(t, ok)
 	require.Equal(t, olderMTime, mtime)
-}
-
-func TestPairMTime_ReturnsEmptyWhenEntriesMissing(t *testing.T) {
-	t.Parallel()
-
-	// Arrange
-	pair := entrygroup.NewPair(nil, nil)
-
-	// Act
-	mtime, ok := pair.MTime()
-
-	// Assert
-	require.False(t, ok)
-	require.Empty(t, mtime)
 }
 
 func TestPairVersion_UsesPlainFirst(t *testing.T) {
@@ -127,10 +123,9 @@ func TestPairVersion_UsesPlainFirst(t *testing.T) {
 	pair := entrygroup.NewPair(plain, instance)
 
 	// Act
-	version, ok := pair.Version()
+	version := pair.Version()
 
 	// Assert
-	require.True(t, ok)
 	require.Equal(t, "ver-1", version)
 }
 
@@ -142,25 +137,10 @@ func TestPairVersion_UsesInstanceWhenPlainMissing(t *testing.T) {
 	pair := entrygroup.NewPair(nil, instance)
 
 	// Act
-	version, ok := pair.Version()
+	version := pair.Version()
 
 	// Assert
-	require.True(t, ok)
 	require.Equal(t, "ver-1", version)
-}
-
-func TestPairVersion_ReturnsFalseWhenEntriesMissing(t *testing.T) {
-	t.Parallel()
-
-	// Arrange
-	pair := entrygroup.NewPair(nil, nil)
-
-	// Act
-	version, ok := pair.Version()
-
-	// Assert
-	require.False(t, ok)
-	require.Empty(t, version)
 }
 
 func TestNewPairsByGroup(t *testing.T) {
@@ -235,13 +215,8 @@ func TestNewPairsByGroup_SortsByMTime(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	require.Len(t, items, 2)
-	firstMTime, firstOK := items[0].MTime()
-	secondMTime, secondOK := items[1].MTime()
-
-	require.True(t, firstOK)
-	require.True(t, secondOK)
-	require.Equal(t, olderMTime, firstMTime)
-	require.Equal(t, newerMTime, secondMTime)
+	require.Equal(t, olderMTime, items[0].MTime())
+	require.Equal(t, newerMTime, items[1].MTime())
 }
 
 func TestNewPairs_SortsItemsByMTime(t *testing.T) {

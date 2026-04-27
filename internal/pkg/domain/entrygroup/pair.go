@@ -18,6 +18,11 @@ type Pair struct {
 }
 
 func NewPair(plain *domain.Plain, instance *domain.Instance) *Pair {
+	// Both values being nil indicates a programmer error, so panic intentionally.
+	if plain == nil && instance == nil {
+		panic("entrygroup.NewPair: plain and instance cannot both be nil")
+	}
+
 	return &Pair{
 		plain:    plain,
 		instance: instance,
@@ -32,28 +37,20 @@ func (p *Pair) Instance() *domain.Instance {
 	return p.instance
 }
 
-func (p *Pair) Version() (string, bool) {
+func (p *Pair) Version() string {
 	if p.plain != nil {
-		return p.plain.Instance(), true
+		return p.plain.Instance()
 	}
 
-	if p.instance != nil {
-		return p.instance.Instance(), true
-	}
-
-	return "", false
+	return p.instance.Instance()
 }
 
-func (p *Pair) MTime() (string, bool) {
+func (p *Pair) MTime() string {
 	if p.plain != nil {
-		return p.plain.MTime(), true
+		return p.plain.MTime()
 	}
 
-	if p.instance != nil {
-		return p.instance.MTime(), true
-	}
-
-	return "", false
+	return p.instance.MTime()
 }
 
 func composeVersionedPairs(

@@ -14,21 +14,12 @@ type Pairs struct {
 func NewPairs(items []*Pair) *Pairs {
 	sortedItems := slices.Clone(items)
 	slices.SortFunc(sortedItems, func(left *Pair, right *Pair) int {
-		return cmp.Compare(pairMTime(left), pairMTime(right))
+		return cmp.Compare(left.MTime(), right.MTime())
 	})
 
 	return &Pairs{
 		items: sortedItems,
 	}
-}
-
-func pairMTime(pair *Pair) string {
-	mtime, ok := pair.MTime()
-	if !ok {
-		return ""
-	}
-
-	return mtime
 }
 
 func NewPairsByGroup(group *EntryGroup) (*Pairs, error) {
@@ -67,8 +58,7 @@ func (p *Pairs) Items() []*Pair {
 
 func (p *Pairs) PairByVersion(instance string) (*Pair, bool) {
 	for _, pair := range p.items {
-		version, ok := pair.Version()
-		if ok && version == instance {
+		if pair.Version() == instance {
 			return pair, true
 		}
 	}
