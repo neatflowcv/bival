@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	versionTwo = "ver-2"
+	olderMTime = "2026-04-27T00:00:00Z"
+	newerMTime = "2026-04-28T00:00:00Z"
+)
+
 func TestNewPair(t *testing.T) {
 	t.Parallel()
 
@@ -33,7 +39,7 @@ func TestNewPair_AllowsDifferentInstance(t *testing.T) {
 	plain := domain.NewPlain(versionedPairParams())
 
 	instanceParams := versionedPairParams()
-	instanceParams.Instance = "ver-2"
+	instanceParams.Instance = versionTwo
 	instance := domain.NewInstance(instanceParams)
 
 	// Act
@@ -69,15 +75,16 @@ func TestPairMTime_UsesPlainFirst(t *testing.T) {
 	// Arrange
 	plain := domain.NewPlain(versionedPairParams())
 	instanceParams := versionedPairParams()
-	instanceParams.MTime = "2026-04-28T00:00:00Z"
+	instanceParams.MTime = newerMTime
 	instance := domain.NewInstance(instanceParams)
 	pair := entrygroup.NewPair(plain, instance)
 
 	// Act
-	mtime := pair.MTime()
+	mtime, ok := pair.MTime()
 
 	// Assert
-	require.Equal(t, "2026-04-27T00:00:00Z", mtime)
+	require.True(t, ok)
+	require.Equal(t, olderMTime, mtime)
 }
 
 func TestPairMTime_UsesInstanceWhenPlainMissing(t *testing.T) {
@@ -88,10 +95,11 @@ func TestPairMTime_UsesInstanceWhenPlainMissing(t *testing.T) {
 	pair := entrygroup.NewPair(nil, instance)
 
 	// Act
-	mtime := pair.MTime()
+	mtime, ok := pair.MTime()
 
 	// Assert
-	require.Equal(t, "2026-04-27T00:00:00Z", mtime)
+	require.True(t, ok)
+	require.Equal(t, olderMTime, mtime)
 }
 
 func TestPairMTime_ReturnsEmptyWhenEntriesMissing(t *testing.T) {
@@ -101,10 +109,58 @@ func TestPairMTime_ReturnsEmptyWhenEntriesMissing(t *testing.T) {
 	pair := entrygroup.NewPair(nil, nil)
 
 	// Act
-	mtime := pair.MTime()
+	mtime, ok := pair.MTime()
 
 	// Assert
+	require.False(t, ok)
 	require.Empty(t, mtime)
+}
+
+func TestPairVersion_UsesPlainFirst(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	plain := domain.NewPlain(versionedPairParams())
+	instanceParams := versionedPairParams()
+	instanceParams.Instance = versionTwo
+	instance := domain.NewInstance(instanceParams)
+	pair := entrygroup.NewPair(plain, instance)
+
+	// Act
+	version, ok := pair.Version()
+
+	// Assert
+	require.True(t, ok)
+	require.Equal(t, "ver-1", version)
+}
+
+func TestPairVersion_UsesInstanceWhenPlainMissing(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	instance := domain.NewInstance(versionedPairParams())
+	pair := entrygroup.NewPair(nil, instance)
+
+	// Act
+	version, ok := pair.Version()
+
+	// Assert
+	require.True(t, ok)
+	require.Equal(t, "ver-1", version)
+}
+
+func TestPairVersion_ReturnsFalseWhenEntriesMissing(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	pair := entrygroup.NewPair(nil, nil)
+
+	// Act
+	version, ok := pair.Version()
+
+	// Assert
+	require.False(t, ok)
+	require.Empty(t, version)
 }
 
 func TestNewPairsByGroup(t *testing.T) {
@@ -122,12 +178,13 @@ func TestNewPairsByGroup(t *testing.T) {
 
 	// Act
 	pairs, err := entrygroup.NewPairsByGroup(group)
+	items := pairs.Items()
 
 	// Assert
 	require.NoError(t, err)
-	require.Len(t, pairs, 1)
-	require.Same(t, plain, pairs[0].Plain())
-	require.Same(t, instance, pairs[0].Instance())
+	require.Len(t, items, 1)
+	require.Same(t, plain, items[0].Plain())
+	require.Same(t, instance, items[0].Instance())
 }
 
 func TestNewPairsByGroup_AllowsMissingMatchingInstance(t *testing.T) {
@@ -140,12 +197,13 @@ func TestNewPairsByGroup_AllowsMissingMatchingInstance(t *testing.T) {
 
 	// Act
 	pairs, err := entrygroup.NewPairsByGroup(group)
+	items := pairs.Items()
 
 	// Assert
 	require.NoError(t, err)
-	require.Len(t, pairs, 1)
-	require.NotNil(t, pairs[0].Plain())
-	require.Nil(t, pairs[0].Instance())
+	require.Len(t, items, 1)
+	require.NotNil(t, items[0].Plain())
+	require.Nil(t, items[0].Instance())
 }
 
 func TestNewPairsByGroup_SortsByMTime(t *testing.T) {
@@ -158,12 +216,12 @@ func TestNewPairsByGroup_SortsByMTime(t *testing.T) {
 	olderParams := versionedPairParams()
 	olderParams.Index = []byte("alpha:ver-1")
 	olderParams.Instance = "ver-1"
-	olderParams.MTime = "2026-04-27T00:00:00Z"
+	olderParams.MTime = olderMTime
 
 	newerParams := versionedPairParams()
 	newerParams.Index = []byte("alpha:ver-2")
-	newerParams.Instance = "ver-2"
-	newerParams.MTime = "2026-04-28T00:00:00Z"
+	newerParams.Instance = versionTwo
+	newerParams.MTime = newerMTime
 
 	group.AddPlain(domain.NewPlain(newerParams))
 	group.AddInstance(domain.NewInstance(newerParams))
@@ -172,12 +230,91 @@ func TestNewPairsByGroup_SortsByMTime(t *testing.T) {
 
 	// Act
 	pairs, err := entrygroup.NewPairsByGroup(group)
+	items := pairs.Items()
 
 	// Assert
 	require.NoError(t, err)
-	require.Len(t, pairs, 2)
-	require.Equal(t, "2026-04-27T00:00:00Z", pairs[0].MTime())
-	require.Equal(t, "2026-04-28T00:00:00Z", pairs[1].MTime())
+	require.Len(t, items, 2)
+	firstMTime, firstOK := items[0].MTime()
+	secondMTime, secondOK := items[1].MTime()
+
+	require.True(t, firstOK)
+	require.True(t, secondOK)
+	require.Equal(t, olderMTime, firstMTime)
+	require.Equal(t, newerMTime, secondMTime)
+}
+
+func TestNewPairs_SortsItemsByMTime(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	olderParams := versionedPairParams()
+	olderParams.Index = []byte("alpha:ver-1")
+	olderParams.Instance = "ver-1"
+	olderParams.MTime = olderMTime
+
+	newerParams := versionedPairParams()
+	newerParams.Index = []byte("alpha:ver-2")
+	newerParams.Instance = versionTwo
+	newerParams.MTime = newerMTime
+
+	newerPair := entrygroup.NewPair(
+		domain.NewPlain(newerParams),
+		domain.NewInstance(newerParams),
+	)
+	olderPair := entrygroup.NewPair(
+		domain.NewPlain(olderParams),
+		domain.NewInstance(olderParams),
+	)
+
+	// Act
+	pairs := entrygroup.NewPairs([]*entrygroup.Pair{newerPair, olderPair})
+	items := pairs.Items()
+
+	// Assert
+	require.Len(t, items, 2)
+	require.Same(t, olderPair, items[0])
+	require.Same(t, newerPair, items[1])
+}
+
+func TestPairsPairByVersion(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	matchingParams := versionedPairParams()
+	matchingPair := entrygroup.NewPair(
+		domain.NewPlain(matchingParams),
+		domain.NewInstance(matchingParams),
+	)
+	missingParams := versionedPairParams()
+	missingParams.Index = []byte("alpha:ver-3")
+	missingParams.Instance = "ver-3"
+	missingInstancePair := entrygroup.NewPair(
+		domain.NewPlain(missingParams),
+		nil,
+	)
+	pairs := entrygroup.NewPairs([]*entrygroup.Pair{missingInstancePair, matchingPair})
+
+	// Act
+	pair, ok := pairs.PairByVersion("ver-1")
+
+	// Assert
+	require.True(t, ok)
+	require.Same(t, matchingPair, pair)
+}
+
+func TestPairsPairByVersion_ReturnsFalseWhenMissing(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	pairs := entrygroup.NewPairs(nil)
+
+	// Act
+	pair, ok := pairs.PairByVersion("ver-404")
+
+	// Assert
+	require.False(t, ok)
+	require.Nil(t, pair)
 }
 
 func versionedHeadParams() domain.DirEntryParams {
@@ -224,7 +361,7 @@ func versionedPairParams() domain.DirEntryParams {
 		Size:             0,
 		AccountedSize:    0,
 		Appendable:       false,
-		MTime:            "2026-04-27T00:00:00Z",
+		MTime:            olderMTime,
 		ETag:             "etag",
 		StorageClass:     "",
 		ContentType:      "",

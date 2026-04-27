@@ -1,9 +1,7 @@
 package entrygroup
 
 import (
-	"cmp"
 	"errors"
-	"slices"
 
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
@@ -34,50 +32,28 @@ func (p *Pair) Instance() *domain.Instance {
 	return p.instance
 }
 
-func (p *Pair) MTime() string {
+func (p *Pair) Version() (string, bool) {
 	if p.plain != nil {
-		return p.plain.MTime()
+		return p.plain.Instance(), true
 	}
 
 	if p.instance != nil {
-		return p.instance.MTime()
+		return p.instance.Instance(), true
 	}
 
-	return ""
+	return "", false
 }
 
-func NewPairsByGroup(group *EntryGroup) ([]*Pair, error) {
-	versionMap := map[string]struct{}{}
-	plains := slices.DeleteFunc(group.PlainEntries(), func(entry *domain.Plain) bool {
-		return entry.IsPlaceholder()
-	})
-	plainMap := map[string]*domain.Plain{}
-
-	for _, plain := range plains {
-		versionMap[plain.Instance()] = struct{}{}
-		plainMap[plain.Instance()] = plain
+func (p *Pair) MTime() (string, bool) {
+	if p.plain != nil {
+		return p.plain.MTime(), true
 	}
 
-	instances := group.InstanceEntries()
-	instanceMap := map[string]*domain.Instance{}
-
-	for _, instance := range instances {
-		versionMap[instance.Instance()] = struct{}{}
-		instanceMap[instance.Instance()] = instance
+	if p.instance != nil {
+		return p.instance.MTime(), true
 	}
 
-	var pairs []*Pair
-
-	for version := range versionMap {
-		pair := NewPair(plainMap[version], instanceMap[version])
-		pairs = append(pairs, pair)
-	}
-
-	slices.SortFunc(pairs, func(left *Pair, right *Pair) int {
-		return cmp.Compare(left.MTime(), right.MTime())
-	})
-
-	return pairs, nil
+	return "", false
 }
 
 func composeVersionedPairs(
