@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/neatflowcv/bival/internal/bilist"
@@ -146,6 +147,26 @@ func logProblem(group *entrygroup.EntryGroup, logger *log.Logger) {
 		formatSb137.WriteString(" code=%q")
 
 		args = append(args, code)
+
+		meta := issue.Meta()
+		if len(meta) == 0 {
+			continue
+		}
+
+		keys := make([]string, 0, len(meta))
+		for key := range meta {
+			keys = append(keys, key)
+		}
+
+		sort.Strings(keys)
+
+		for _, key := range keys {
+			formatSb137.WriteString(" meta.")
+			formatSb137.WriteString(key)
+			formatSb137.WriteString("=%q")
+
+			args = append(args, meta[key])
+		}
 	}
 
 	if len(args) == 1 {

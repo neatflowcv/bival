@@ -73,7 +73,9 @@ func TestAnalyzeFileReportsPendingMapGroupOnce(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" code=\"plain.pending.exists\" code=\"pair.version.mismatched\"\n",
+		"problem name=\"alpha\" code=\"plain.pending.exists\" "+
+			"meta.index=\"alpha\\x00v913\\x00iv1\" meta.instance=\"v1\" "+
+			"code=\"pair.version.mismatched\" meta.version=\"v1\"\n",
 		buf.String(),
 	)
 }
@@ -95,7 +97,11 @@ func TestAnalyzeFileReportsPendingLogGroupOnce(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" code=\"olh.pending.exists\" code=\"olh.invalid\"\n", buf.String())
+	require.Equal(
+		t,
+		"problem name=\"alpha\" code=\"olh.pending.exists\" code=\"olh.invalid\" meta.referenced_version=\"v1\"\n",
+		buf.String(),
+	)
 }
 
 func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
@@ -117,7 +123,7 @@ func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" code=\"pair.plain.missing\" code=\"olh.missing\"\n",
+		"problem name=\"alpha\" code=\"pair.plain.missing\" meta.version=\"v2\" code=\"olh.missing\"\n",
 		buf.String(),
 	)
 }
@@ -140,7 +146,7 @@ func TestAnalyzeFileReportsInvalidInstanceCount(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" code=\"pair.instance.missing\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"pair.instance.missing\" meta.version=\"v2\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsTooManyVersionedEntries(t *testing.T) {
@@ -166,7 +172,11 @@ func TestAnalyzeFileReportsTooManyVersionedEntries(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" code=\"entry.versioned.count.exceeded\"\n", buf.String())
+	require.Equal(
+		t,
+		"problem name=\"alpha\" code=\"entry.versioned.count.exceeded\" meta.count=\"10\" meta.maximum=\"8\"\n",
+		buf.String(),
+	)
 }
 
 func TestAnalyzeFileReportsPendingEntryAndTooManyVersionedEntries(t *testing.T) {
@@ -192,7 +202,9 @@ func TestAnalyzeFileReportsPendingEntryAndTooManyVersionedEntries(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" code=\"plain.pending.exists\" code=\"pair.version.mismatched\"\n",
+		"problem name=\"alpha\" code=\"plain.pending.exists\" "+
+			"meta.index=\"alpha\\x00v913\\x00iv1\" meta.instance=\"v1\" "+
+			"code=\"pair.version.mismatched\" meta.version=\"v1\"\n",
 		buf.String(),
 	)
 }
@@ -214,7 +226,7 @@ func TestAnalyzeFileReportsStaleDeleteMarkerOLH(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" code=\"version.stale\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"version.stale\" meta.version=\"delete-v1\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
@@ -240,7 +252,7 @@ func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"beta\" code=\"pair.instance.missing\"\n", buf.String())
+	require.Equal(t, "problem name=\"beta\" code=\"pair.instance.missing\" meta.version=\"v2\"\n", buf.String())
 }
 
 func TestAnalyzeFileHandlesZeroFloatMTime(t *testing.T) {
