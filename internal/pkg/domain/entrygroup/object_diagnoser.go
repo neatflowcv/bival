@@ -1,9 +1,6 @@
 package entrygroup
 
-import (
-	"strconv"
-	"time"
-)
+import "time"
 
 const (
 	issueCodePendingEntryExists      = "entry.pending.exists"
@@ -27,8 +24,15 @@ type Diagnoser interface {
 	Diagnose(group *EntryGroup) []*Issue
 }
 
-func newObjectDiagnosers() []Diagnoser {
+func newUnversionedObjectDiagnosers() []Diagnoser {
 	return []Diagnoser{
+		pendingEntryDiagnoser{},
+	}
+}
+
+func newVersionedObjectDiagnosers() []Diagnoser {
+	return []Diagnoser{
+		pendingEntryDiagnoser{},
 		headDiagnoser{},
 		entryKeyDiagnoser{},
 		pairDiagnoser{},
@@ -44,42 +48,6 @@ func diagnose(group *EntryGroup, diagnosers []Diagnoser) []*Issue {
 		issues = append(issues, diagnoser.Diagnose(group)...)
 	}
 
-	if len(issues) == 0 {
-		return nil
-	}
-
-	return issues
-}
-
-func (g *EntryGroup) Issues() []*Issue {
-	issues := make([]*Issue, 0)
-
-	if g.HasPendingEntries() {
-		issues = append(issues, newIssue(
-			issueCodePendingEntryExists,
-			nil,
-		))
-	}
-
-	if g.isUnversionedObject() {
-		if len(issues) == 0 {
-			return nil
-		}
-
-		return issues
-	}
-
-	if count := g.versionedEntryCount(); count > maxVersionedEntryCount {
-		issues = append(issues, newIssue(
-			issueCodeTooManyVersionedEntries,
-			map[string]string{
-				"count":   strconv.Itoa(count),
-				"maximum": strconv.Itoa(maxVersionedEntryCount),
-			},
-		))
-	}
-
-	issues = append(issues, diagnose(g, newObjectDiagnosers())...)
 	if len(issues) == 0 {
 		return nil
 	}

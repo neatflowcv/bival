@@ -1,87 +1,88 @@
 package entrygroup
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/neatflowcv/bival/internal/pkg/domain"
+)
 
 type olhDiagnoser struct{}
 
 func (olhDiagnoser) Diagnose(group *EntryGroup) []*Issue {
 	olhEntries := group.OLHEntries()
 
-	switch len(olhEntries) {
-	case 0:
-		return []*Issue{
-			newIssue(
-				issueCodeMissingOLH,
-				nil,
-			),
-		}
-	case 1:
-	default:
-		return []*Issue{
-			newIssue(
-				issueCodeInvalidOLH,
-				map[string]string{
-					"olh_count": strconv.Itoa(len(olhEntries)),
-				},
-			),
-		}
+	countIssue := diagnoseOLHCount(olhEntries)
+	if countIssue != nil {
+		return []*Issue{countIssue}
 	}
 
 	olh := olhEntries[0]
-	if olh == nil {
-		return []*Issue{
-			newIssue(
-				issueCodeInvalidOLH,
-				nil,
-			),
-		}
-	}
 
-	if olh.Name() == "" {
-		return []*Issue{
-			newIssue(
-				issueCodeInvalidOLH,
-				map[string]string{
-					"referenced_version": olh.Instance(),
-				},
-			),
-		}
-	}
-
-	if olh.HasPendingLog() {
-		return []*Issue{
-			newIssue(
-				issueCodeInvalidOLH,
-				map[string]string{
-					"referenced_version": olh.Instance(),
-				},
-			),
-		}
-	}
-
-	instanceSet, ok := instanceNameSet(group.InstanceEntries())
-	if !ok {
-		return []*Issue{
-			newIssue(
-				issueCodeInvalidOLHReference,
-				map[string]string{
-					"referenced_version": olh.Instance(),
-				},
-			),
-		}
+	olhIssue := diagnoseInvalidOLH(olh)
+	if olhIssue != nil {
+		return []*Issue{olhIssue}
 	}
 
 	referencedVersion := olh.Instance()
+
+	instanceSet, ok := instanceNameSet(group.InstanceEntries())
+	if !ok {
+		return []*Issue{newInvalidOLHReferenceIssue(referencedVersion)}
+	}
+
 	if _, exists := instanceSet[referencedVersion]; exists {
 		return nil
 	}
 
 	return []*Issue{
-		newIssue(
-			issueCodeInvalidOLHReference,
-			map[string]string{
-				"referenced_version": referencedVersion,
-			},
-		),
+		newInvalidOLHReferenceIssue(referencedVersion),
 	}
+}
+
+func diagnoseOLHCount(olhEntries []*domain.OLH) *Issue {
+	switch len(olhEntries) {
+	case 0:
+		return newIssue(
+			issueCodeMissingOLH,
+			nil,
+		)
+	case 1:
+		return nil
+	default:
+		return newIssue(
+			issueCodeInvalidOLH,
+			map[string]string{
+				"olh_count": strconv.Itoa(len(olhEntries)),
+			},
+		)
+	}
+}
+
+func diagnoseInvalidOLH(olh *domain.OLH) *Issue {
+	if olh == nil {
+		return newIssue(
+			issueCodeInvalidOLH,
+			nil,
+		)
+	}
+
+	if olh.Name() != "" && !olh.HasPendingLog() {
+		return nil
+	}
+
+	return newIssue(
+		issueCodeInvalidOLH,
+		map[string]string{
+			"referenced_version": olh.Instance(),
+		},
+	)
+}
+
+func newInvalidOLHReferenceIssue(referencedVersion string) *Issue {
+	return newIssue(
+		issueCodeInvalidOLHReference,
+		map[string]string{
+			"referenced_version": referencedVersion,
+		},
+	)
 }

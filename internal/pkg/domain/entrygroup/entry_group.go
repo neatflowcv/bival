@@ -92,6 +92,10 @@ func (g *EntryGroup) ProblemReason() []*Issue {
 	return g.Issues()
 }
 
+func (g *EntryGroup) Issues() []*Issue {
+	return diagnoseObject(g)
+}
+
 func (g *EntryGroup) AddPlain(entry *domain.Plain) error {
 	err := g.validateName(entry.Name())
 	if err != nil {
