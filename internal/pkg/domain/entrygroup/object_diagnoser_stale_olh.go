@@ -1,6 +1,7 @@
 package entrygroup
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -8,6 +9,12 @@ import (
 )
 
 const staleOLHThreshold = 7 * 24 * time.Hour
+
+var (
+	errMissingOLH          = errors.New(missingOLHReason)
+	errInvalidOLH          = errors.New(invalidOLHReason)
+	errInvalidOLHReference = errors.New(invalidOLHReferenceReason)
+)
 
 type staleOLHDiagnoser struct {
 	now time.Time
@@ -84,6 +91,56 @@ func olhContext(group *EntryGroup) (*domain.OLH, map[string]*Pair, map[string]*d
 	}
 
 	return olh, pairs, instanceByKey
+}
+
+func buildVersionedOLH(olhEntries []*domain.OLH, instanceEntries []*domain.Instance) (*domain.OLH, error) {
+	olh, reason := singleValidOLHEntry(olhEntries)
+	switch reason {
+	case "":
+	case missingOLHReason:
+		return nil, errMissingOLH
+	default:
+		return nil, errInvalidOLH
+	}
+
+	if !hasValidOLHReference(olh, instanceEntries) {
+		return nil, errInvalidOLHReference
+	}
+
+	return olh, nil
+}
+
+func hasValidOLHReference(olhEntry *domain.OLH, instanceEntries []*domain.Instance) bool {
+	instanceSet, instanceSetOK := instanceNameSet(instanceEntries)
+	if !instanceSetOK {
+		return false
+	}
+
+	referencedInstance := olhEntry.Instance()
+	_, exists := instanceSet[referencedInstance]
+
+	return exists
+}
+
+func singleValidOLHEntry(entries []*domain.OLH) (*domain.OLH, string) {
+	if len(entries) == 0 {
+		return nil, missingOLHReason
+	}
+
+	if len(entries) != 1 {
+		return nil, invalidOLHReason
+	}
+
+	entry := entries[0]
+	if entry == nil || entry.Name() == "" {
+		return nil, invalidOLHReason
+	}
+
+	if entry.HasPendingLog() {
+		return nil, invalidOLHReason
+	}
+
+	return entry, ""
 }
 
 func isStaleInstance(entry *domain.Instance, now time.Time) bool {

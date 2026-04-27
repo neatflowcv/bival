@@ -9,15 +9,9 @@ import (
 var errPairAlreadyFull = errors.New("pair is already full")
 
 var (
-	errDuplicateVersionedHead  = errors.New(duplicateVersionedHeadReason)
-	errInvalidVersionedHead    = errors.New(invalidVersionedHeadReason)
-	errMissingVersionedHead    = errors.New(missingVersionedHeadReason)
 	errMissingMatchingPlain    = errors.New(missingMatchingPlainReason)
 	errMissingMatchingInstance = errors.New(missingMatchingInstanceReason)
 	errMismatchedVersionPair   = errors.New(mismatchedVersionPairReason)
-	errMissingOLH              = errors.New(missingOLHReason)
-	errInvalidOLH              = errors.New(invalidOLHReason)
-	errInvalidOLHReference     = errors.New(invalidOLHReferenceReason)
 )
 
 type Pair struct {
@@ -28,52 +22,6 @@ type Pair struct {
 func (p *Pair) isFull() bool {
 	return p.Plain != nil &&
 		p.Instance != nil
-}
-
-func collectVersionedPlainEntries(entries []*domain.Plain) ([]*domain.Plain, error) {
-	pairedPlainEntries := make([]*domain.Plain, 0, len(entries))
-
-	var (
-		placeholder      *domain.Plain
-		invalidHeadCount int
-		errs             []error
-	)
-
-	for _, entry := range entries {
-		if isVersionedHeadCandidate(entry) && !entry.IsPlaceholder() {
-			invalidHeadCount++
-
-			continue
-		}
-
-		if !entry.IsPlaceholder() {
-			pairedPlainEntries = append(pairedPlainEntries, entry)
-
-			continue
-		}
-
-		if placeholder != nil {
-			errs = append(errs, errDuplicateVersionedHead)
-
-			continue
-		}
-
-		placeholder = entry
-	}
-
-	if placeholder == nil {
-		if invalidHeadCount > 0 {
-			errs = append(errs, errInvalidVersionedHead)
-		} else {
-			errs = append(errs, errMissingVersionedHead)
-		}
-	}
-
-	if len(errs) > 0 {
-		return nil, errors.Join(errs...)
-	}
-
-	return pairedPlainEntries, nil
 }
 
 func composeVersionedPairs(
@@ -142,23 +90,6 @@ func pairByInstance(pairs map[string]*Pair, instance string) *Pair {
 	pairs[instance] = pair
 
 	return pair
-}
-
-func buildVersionedOLH(olhEntries []*domain.OLH, instanceEntries []*domain.Instance) (*domain.OLH, error) {
-	olh, reason := singleValidOLHEntry(olhEntries)
-	switch reason {
-	case "":
-	case missingOLHReason:
-		return nil, errMissingOLH
-	default:
-		return nil, errInvalidOLH
-	}
-
-	if !hasValidOLHReference(olh, instanceEntries) {
-		return nil, errInvalidOLHReference
-	}
-
-	return olh, nil
 }
 
 func (p *Pair) setPlain(entry *domain.Plain) error {
