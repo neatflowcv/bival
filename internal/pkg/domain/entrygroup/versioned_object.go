@@ -8,6 +8,18 @@ import (
 
 var errPairAlreadyFull = errors.New("pair is already full")
 
+var (
+	errDuplicateVersionedHead  = errors.New(duplicateVersionedHeadReason)
+	errInvalidVersionedHead    = errors.New(invalidVersionedHeadReason)
+	errMissingVersionedHead    = errors.New(missingVersionedHeadReason)
+	errMissingMatchingPlain    = errors.New(missingMatchingPlainReason)
+	errMissingMatchingInstance = errors.New(missingMatchingInstanceReason)
+	errMismatchedVersionPair   = errors.New(mismatchedVersionPairReason)
+	errMissingOLH              = errors.New(missingOLHReason)
+	errInvalidOLH              = errors.New(invalidOLHReason)
+	errInvalidOLHReference     = errors.New(invalidOLHReferenceReason)
+)
+
 type Pair struct {
 	Plain    *domain.Plain
 	Instance *domain.Instance
@@ -41,7 +53,7 @@ func collectVersionedPlainEntries(entries []*domain.Plain) ([]*domain.Plain, err
 		}
 
 		if placeholder != nil {
-			errs = append(errs, errors.New(duplicateVersionedHeadReason))
+			errs = append(errs, errDuplicateVersionedHead)
 
 			continue
 		}
@@ -51,9 +63,9 @@ func collectVersionedPlainEntries(entries []*domain.Plain) ([]*domain.Plain, err
 
 	if placeholder == nil {
 		if invalidHeadCount > 0 {
-			errs = append(errs, errors.New(invalidVersionedHeadReason))
+			errs = append(errs, errInvalidVersionedHead)
 		} else {
-			errs = append(errs, errors.New(missingVersionedHeadReason))
+			errs = append(errs, errMissingVersionedHead)
 		}
 	}
 
@@ -106,11 +118,11 @@ func validateVersionedPairs(pairs map[string]*Pair) []error {
 	for _, pair := range pairs {
 		switch {
 		case pair.Plain == nil:
-			errs = append(errs, errors.New(missingMatchingPlainReason))
+			errs = append(errs, errMissingMatchingPlain)
 		case pair.Instance == nil:
-			errs = append(errs, errors.New(missingMatchingInstanceReason))
+			errs = append(errs, errMissingMatchingInstance)
 		case !domain.IsVersionPair(pair.Plain, pair.Instance):
-			errs = append(errs, errors.New(mismatchedVersionPairReason))
+			errs = append(errs, errMismatchedVersionPair)
 		}
 	}
 
@@ -137,13 +149,13 @@ func buildVersionedOLH(olhEntries []*domain.OLH, instanceEntries []*domain.Insta
 	switch reason {
 	case "":
 	case missingOLHReason:
-		return nil, errors.New(missingOLHReason)
+		return nil, errMissingOLH
 	default:
-		return nil, errors.New(invalidOLHReason)
+		return nil, errInvalidOLH
 	}
 
 	if !hasValidOLHReference(olh, instanceEntries) {
-		return nil, errors.New(invalidOLHReferenceReason)
+		return nil, errInvalidOLHReference
 	}
 
 	return olh, nil
