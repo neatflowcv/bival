@@ -157,11 +157,10 @@ func TestNewPairsByGroup(t *testing.T) {
 	group.AddInstance(instance)
 
 	// Act
-	pairs, err := entrygroup.NewPairsByGroup(group)
+	pairs := entrygroup.NewPairsByGroup(group)
 	items := pairs.Items()
 
 	// Assert
-	require.NoError(t, err)
 	require.Len(t, items, 1)
 	require.Same(t, plain, items[0].Plain())
 	require.Same(t, instance, items[0].Instance())
@@ -176,11 +175,10 @@ func TestNewPairsByGroup_AllowsMissingMatchingInstance(t *testing.T) {
 	group.AddPlain(domain.NewPlain(versionedPairParams()))
 
 	// Act
-	pairs, err := entrygroup.NewPairsByGroup(group)
+	pairs := entrygroup.NewPairsByGroup(group)
 	items := pairs.Items()
 
 	// Assert
-	require.NoError(t, err)
 	require.Len(t, items, 1)
 	require.NotNil(t, items[0].Plain())
 	require.Nil(t, items[0].Instance())
@@ -209,11 +207,10 @@ func TestNewPairsByGroup_SortsByMTime(t *testing.T) {
 	group.AddInstance(domain.NewInstance(olderParams))
 
 	// Act
-	pairs, err := entrygroup.NewPairsByGroup(group)
+	pairs := entrygroup.NewPairsByGroup(group)
 	items := pairs.Items()
 
 	// Assert
-	require.NoError(t, err)
 	require.Len(t, items, 2)
 	require.Equal(t, olderMTime, items[0].MTime())
 	require.Equal(t, newerMTime, items[1].MTime())

@@ -210,7 +210,7 @@ func TestEntryGroupProblemReasonRejectsMultipleVersionsWhenOLHReferenceIsStale(t
 	group.AddInstance(newVersionedInstanceEntry(versionOne))
 	group.AddInstance(newVersionedInstanceEntry(versionTwo))
 	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
-	require.Equal(t, []string{"olh.reference.stale"}, issueCodes(group.ProblemReason()))
+	require.Equal(t, []string{"version.stale"}, issueCodes(group.ProblemReason()))
 }
 
 func TestEntryGroupProblemReasonAllowsMultipleVersionsWhenOnlyNonOLHReferenceIsStale(t *testing.T) {
@@ -255,7 +255,7 @@ func TestEntryGroupProblemReasonRejectsStaleDeleteMarkerOLHWhenVersionsExist(t *
 	group.AddPlain(newVersionedPlainEntry(version))
 	group.AddInstance(newVersionedInstanceEntry(version))
 	group.AddOLH(newCustomVersionedOLHEntry("alpha", "delete-v1", false, true))
-	require.Equal(t, []string{"olh.delete_marker.stale"}, issueCodes(group.ProblemReason()))
+	require.Equal(t, []string{"version.stale"}, issueCodes(group.ProblemReason()))
 }
 
 func TestEntryGroupRejectsMismatchedPlainName(t *testing.T) {

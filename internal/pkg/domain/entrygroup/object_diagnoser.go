@@ -16,8 +16,7 @@ const (
 	issueCodeMissingOLH              = "olh.missing"
 	issueCodeInvalidOLH              = "olh.invalid"
 	issueCodeInvalidOLHReference     = "olh.reference.invalid"
-	issueCodeStaleOLHReference       = "olh.reference.stale"
-	issueCodeStaleDeleteMarkerOLH    = "olh.delete_marker.stale"
+	issueCodeStaleVersion            = "version.stale"
 )
 
 type Diagnoser interface {

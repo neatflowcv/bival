@@ -22,7 +22,7 @@ func NewPairs(items []*Pair) *Pairs {
 	}
 }
 
-func NewPairsByGroup(group *EntryGroup) (*Pairs, error) {
+func NewPairsByGroup(group *EntryGroup) *Pairs {
 	versionMap := map[string]struct{}{}
 	plains := slices.DeleteFunc(group.PlainEntries(), func(entry *domain.Plain) bool {
 		return entry.IsPlaceholder()
@@ -49,7 +49,7 @@ func NewPairsByGroup(group *EntryGroup) (*Pairs, error) {
 		items = append(items, pair)
 	}
 
-	return NewPairs(items), nil
+	return NewPairs(items)
 }
 
 func (p *Pairs) Items() []*Pair {

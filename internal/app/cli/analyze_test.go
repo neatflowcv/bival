@@ -214,7 +214,7 @@ func TestAnalyzeFileReportsStaleDeleteMarkerOLH(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" code=\"olh.delete_marker.stale\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"version.stale\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsOnlyProblemGroups(t *testing.T) {
