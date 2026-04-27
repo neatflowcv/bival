@@ -72,6 +72,18 @@ func (e *Instance) VersionedEpoch() int {
 	return e.vEpoch
 }
 
+func (e *Instance) IsSoftDeleted() bool {
+	return e.pool == -1 &&
+		e.epoch == 0 &&
+		!e.exists &&
+		e.category == 0 &&
+		e.size == 0 &&
+		e.contentType == "" &&
+		e.accountedSize == 0 &&
+		e.tag == "delete-marker" &&
+		e.flags&4 != 0
+}
+
 func (e *Instance) HasPendingMap() bool {
 	return len(e.pendingMaps) > 0
 }
