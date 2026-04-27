@@ -52,6 +52,10 @@ func NewInstance(p DirEntryParams) *Instance {
 	}
 }
 
+func (e *Instance) Index() string {
+	return string(e.index)
+}
+
 func (e *Instance) Name() string {
 	return e.name
 }

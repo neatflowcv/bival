@@ -73,7 +73,7 @@ func TestAnalyzeFileReportsPendingMapGroupOnce(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" code=\"entry.pending.exists\" code=\"pair.version.mismatched\"\n",
+		"problem name=\"alpha\" code=\"plain.pending.exists\" code=\"pair.version.mismatched\"\n",
 		buf.String(),
 	)
 }
@@ -95,7 +95,7 @@ func TestAnalyzeFileReportsPendingLogGroupOnce(t *testing.T) {
 
 	err := analyzeFile(inputPath, logger)
 	require.NoError(t, err)
-	require.Equal(t, "problem name=\"alpha\" code=\"entry.pending.exists\" code=\"olh.invalid\"\n", buf.String())
+	require.Equal(t, "problem name=\"alpha\" code=\"olh.pending.exists\" code=\"olh.invalid\"\n", buf.String())
 }
 
 func TestAnalyzeFileReportsInvalidOLHCount(t *testing.T) {
@@ -192,7 +192,7 @@ func TestAnalyzeFileReportsPendingEntryAndTooManyVersionedEntries(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"problem name=\"alpha\" code=\"entry.pending.exists\" code=\"pair.version.mismatched\"\n",
+		"problem name=\"alpha\" code=\"plain.pending.exists\" code=\"pair.version.mismatched\"\n",
 		buf.String(),
 	)
 }

@@ -59,3 +59,26 @@ func TestEntryGroupIssuesMetaIsDefensivelyCopied(t *testing.T) {
 
 	require.Equal(t, map[string]string{"version": "v2"}, issues[0].Meta())
 }
+
+func TestEntryGroupIssuesDescribePendingEntryMeta(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(fixtureWithPendingMap(defaultVersionedFixture("v1"), true)))
+	group.AddInstance(newVersionedInstanceEntry(defaultVersionedFixture("v1")))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
+
+	issues := group.Issues()
+	require.Len(t, issues, 2)
+	require.Equal(t, "plain.pending.exists", issues[0].Code())
+	require.Equal(
+		t,
+		map[string]string{
+			"instance": "v1",
+			"index":    "alpha\x00v913\x00iv1",
+		},
+		issues[0].Meta(),
+	)
+}

@@ -163,7 +163,7 @@ func TestEntryGroupProblemReasonIncludesPendingEntry(t *testing.T) {
 	group.AddInstance(newVersionedInstanceEntry(versionTwo))
 	group.AddInstance(newVersionedInstanceEntry(versionThree))
 	group.AddOLH(newVersionedOLHEntry("alpha", "v1", false))
-	require.Equal(t, []string{"entry.pending.exists"}, issueCodes(group.ProblemReason()))
+	require.Equal(t, []string{"plain.pending.exists", "instance.pending.exists"}, issueCodes(group.ProblemReason()))
 }
 
 func TestEntryGroupProblemReasonKeepsPendingEntryBeforeVersionedCountExceeded(t *testing.T) {
@@ -189,7 +189,39 @@ func TestEntryGroupProblemReasonKeepsPendingEntryBeforeVersionedCountExceeded(t 
 
 	require.Equal(
 		t,
-		[]string{"entry.pending.exists", "entry.versioned.count.exceeded"},
+		[]string{"plain.pending.exists", "instance.pending.exists", "entry.versioned.count.exceeded"},
+		issueCodes(group.ProblemReason()),
+	)
+}
+
+func TestEntryGroupProblemReasonCountsPendingEntriesByField(t *testing.T) {
+	t.Parallel()
+
+	group := entrygroup.New("alpha")
+
+	versionOne := fixtureWithPendingMap(defaultVersionedFixture("v1"), true)
+	versionTwo := fixtureWithPendingMap(defaultVersionedFixture("v2"), true)
+	versionThree := defaultVersionedFixture("v3")
+
+	group.AddPlain(newVersionedHeadPlainEntry())
+	group.AddPlain(newVersionedPlainEntry(versionOne))
+	group.AddPlain(newVersionedPlainEntry(versionTwo))
+	group.AddPlain(newVersionedPlainEntry(versionThree))
+	group.AddInstance(newVersionedInstanceEntry(versionOne))
+	group.AddInstance(newVersionedInstanceEntry(versionTwo))
+	group.AddInstance(newVersionedInstanceEntry(versionThree))
+	group.AddOLH(newVersionedOLHEntry("alpha", "v1", true))
+
+	require.Equal(
+		t,
+		[]string{
+			"plain.pending.exists",
+			"plain.pending.exists",
+			"instance.pending.exists",
+			"instance.pending.exists",
+			"olh.pending.exists",
+			"olh.invalid",
+		},
 		issueCodes(group.ProblemReason()),
 	)
 }

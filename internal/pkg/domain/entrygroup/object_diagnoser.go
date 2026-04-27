@@ -3,7 +3,9 @@ package entrygroup
 import "time"
 
 const (
-	issueCodePendingEntryExists      = "entry.pending.exists"
+	issueCodePendingPlainExists      = "plain.pending.exists"
+	issueCodePendingInstanceExists   = "instance.pending.exists"
+	issueCodePendingOLHExists        = "olh.pending.exists"
 	issueCodeTooManyVersionedEntries = "entry.versioned.count.exceeded"
 	issueCodeMissingVersionedHead    = "versioned.head.missing"
 	issueCodeDuplicateVersionedHead  = "versioned.head.duplicate"
