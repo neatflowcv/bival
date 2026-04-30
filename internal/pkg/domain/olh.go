@@ -1,7 +1,6 @@
 package domain
 
 type OLHParams struct {
-	Kind           string
 	Index          []byte
 	Name           string
 	Instance       string
@@ -14,7 +13,6 @@ type OLHParams struct {
 }
 
 type OLH struct {
-	kind           string
 	index          []byte
 	name           string
 	instance       string
@@ -28,7 +26,6 @@ type OLH struct {
 
 func NewOLH(p OLHParams) *OLH {
 	return &OLH{
-		kind:           p.Kind,
 		index:          p.Index,
 		name:           p.Name,
 		instance:       p.Instance,

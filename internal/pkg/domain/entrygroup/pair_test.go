@@ -291,7 +291,6 @@ func TestPairsPairByVersion_ReturnsFalseWhenMissing(t *testing.T) {
 
 func versionedHeadParams() domain.DirEntryParams {
 	return domain.DirEntryParams{
-		Kind:             "",
 		Index:            []byte("alpha"),
 		Name:             "alpha",
 		Instance:         "",
@@ -318,7 +317,6 @@ func versionedHeadParams() domain.DirEntryParams {
 
 func versionedPairParams() domain.DirEntryParams {
 	return domain.DirEntryParams{
-		Kind:             "",
 		Index:            []byte("alpha:ver-1"),
 		Name:             "alpha",
 		Instance:         "ver-1",

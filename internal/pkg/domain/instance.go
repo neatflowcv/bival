@@ -1,7 +1,6 @@
 package domain
 
 type Instance struct {
-	kind             string
 	index            []byte
 	name             string
 	instance         string
@@ -27,7 +26,6 @@ type Instance struct {
 
 func NewInstance(p DirEntryParams) *Instance {
 	return &Instance{
-		kind:             p.Kind,
 		index:            p.Index,
 		name:             p.Name,
 		instance:         p.Instance,

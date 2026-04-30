@@ -26,7 +26,6 @@ func buildEntry(record *bilist.Record) (any, error) {
 		return domain.NewPlain(params), nil
 	case recordTypeOLH:
 		return domain.NewOLH(domain.OLHParams{
-			Kind:           record.Type,
 			Index:          []byte(record.Idx),
 			Name:           record.Entry.Key.Name,
 			Instance:       record.Entry.Key.Instance,
@@ -44,7 +43,6 @@ func buildEntry(record *bilist.Record) (any, error) {
 
 func newDirEntryParams(record *bilist.Record) domain.DirEntryParams {
 	return domain.DirEntryParams{
-		Kind:             record.Type,
 		Index:            []byte(record.Idx),
 		Name:             record.Entry.Name,
 		Instance:         record.Entry.Instance,

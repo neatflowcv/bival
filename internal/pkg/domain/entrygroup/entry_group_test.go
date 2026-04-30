@@ -556,7 +556,6 @@ func newCustomVersionedPlainEntry(fixture versionedEntryFixture, buildVersionedI
 
 	return domain.NewPlain(
 		domain.DirEntryParams{
-			Kind:             "plain",
 			Index:            []byte(idx),
 			Name:             fixture.name,
 			Instance:         fixture.instance,
@@ -590,7 +589,6 @@ func newVersionedInstanceEntry(fixture versionedEntryFixture) *domain.Instance {
 
 	return domain.NewInstance(
 		domain.DirEntryParams{
-			Kind:             "instance",
 			Index:            []byte(versionedInstanceIndex(fixture.instance)),
 			Name:             fixture.name,
 			Instance:         fixture.instance,
@@ -636,7 +634,6 @@ func newCustomPlainEntry(
 
 	return domain.NewPlain(
 		domain.DirEntryParams{
-			Kind:             "plain",
 			Index:            []byte(idx),
 			Name:             name,
 			Instance:         instance,
@@ -689,7 +686,6 @@ func newCustomVersionedOLHEntry(name string, instance string, pending bool, dele
 	}
 
 	return domain.NewOLH(domain.OLHParams{
-		Kind:           "olh",
 		Index:          []byte(name),
 		Name:           name,
 		Instance:       instance,

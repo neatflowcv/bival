@@ -1,7 +1,6 @@
 package domain
 
 type DirEntryParams struct {
-	Kind             string
 	Index            []byte
 	Name             string
 	Instance         string
