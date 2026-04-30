@@ -35,6 +35,7 @@ func newUnversionedObjectDiagnosers() []Diagnoser {
 func newVersionedObjectDiagnosers() []Diagnoser {
 	return []Diagnoser{
 		pendingEntryDiagnoser{},
+		versionedEntryCountDiagnoser{},
 		headDiagnoser{},
 		entryKeyDiagnoser{},
 		pairDiagnoser{},
