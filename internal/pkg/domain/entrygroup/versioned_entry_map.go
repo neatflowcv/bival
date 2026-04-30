@@ -2,6 +2,8 @@ package entrygroup
 
 import "github.com/neatflowcv/bival/internal/pkg/domain"
 
+const duplicateVersionedEntryKeyReason = "duplicate versioned entry key"
+
 func buildPlainEntryMap(entries []*domain.Plain) (map[string]*domain.Plain, string) {
 	entriesByKey := make(map[string]*domain.Plain, len(entries))
 	for _, entry := range entries {

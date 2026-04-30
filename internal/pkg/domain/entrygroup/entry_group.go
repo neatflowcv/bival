@@ -7,20 +7,6 @@ import (
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
-const (
-	missingVersionedHeadReason       = "missing versioned head"
-	duplicateVersionedHeadReason     = "duplicate versioned head"
-	invalidVersionedHeadReason       = "invalid versioned head"
-	duplicateVersionedEntryKeyReason = "duplicate versioned entry key"
-	missingMatchingPlainReason       = "instance version has no matching plain"
-	missingMatchingInstanceReason    = "plain version has no matching instance"
-	mismatchedVersionPairReason      = "plain and instance versions differ"
-	missingOLHReason                 = "missing olh"
-	invalidOLHReason                 = "invalid olh"
-	invalidOLHReferenceReason        = "olh references missing instance"
-	maxVersionedEntryCount           = 8
-)
-
 type EntryGroup struct {
 	name            string
 	plainEntries    []*domain.Plain

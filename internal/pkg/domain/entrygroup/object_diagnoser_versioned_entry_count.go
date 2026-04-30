@@ -2,6 +2,8 @@ package entrygroup
 
 import "strconv"
 
+const maxVersionedEntryCount = 8
+
 type versionedEntryCountDiagnoser struct{}
 
 func (versionedEntryCountDiagnoser) Diagnose(group *EntryGroup) []*Issue {

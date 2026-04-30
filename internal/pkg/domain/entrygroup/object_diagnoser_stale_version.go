@@ -8,7 +8,10 @@ import (
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
-const staleOLHThreshold = 7 * 24 * time.Hour
+const (
+	invalidOLHReason  = "invalid olh"
+	staleOLHThreshold = 7 * 24 * time.Hour
+)
 
 var (
 	errInvalidOLH = errors.New(invalidOLHReason)

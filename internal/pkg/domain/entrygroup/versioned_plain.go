@@ -6,6 +6,12 @@ import (
 	"github.com/neatflowcv/bival/internal/pkg/domain"
 )
 
+const (
+	missingVersionedHeadReason   = "missing versioned head"
+	duplicateVersionedHeadReason = "duplicate versioned head"
+	invalidVersionedHeadReason   = "invalid versioned head"
+)
+
 var (
 	errDuplicateVersionedHead = errors.New(duplicateVersionedHeadReason)
 	errInvalidVersionedHead   = errors.New(invalidVersionedHeadReason)
