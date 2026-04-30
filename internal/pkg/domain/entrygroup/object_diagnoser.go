@@ -46,15 +46,10 @@ func newVersionedObjectDiagnosers() []Diagnoser {
 }
 
 func diagnose(group *EntryGroup, diagnosers []Diagnoser) []*Issue {
-	issues := make([]*Issue, 0)
-
+	var ret []*Issue
 	for _, diagnoser := range diagnosers {
-		issues = append(issues, diagnoser.Diagnose(group)...)
+		ret = append(ret, diagnoser.Diagnose(group)...)
 	}
 
-	if len(issues) == 0 {
-		return nil
-	}
-
-	return issues
+	return ret
 }
